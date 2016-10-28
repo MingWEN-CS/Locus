@@ -29,7 +29,8 @@ public class ReadHunksFromLog {
 		String command = null;
 		Patch patch = null;
 		List<String> content = new ArrayList<String>();
-		List<String> rawCommit = FileToLines.fileToLines(file);
+//		System.out.println(file);
+        List<String> rawCommit = FileToLines.fileToLines(file);
 		int index = 0;
 		try {
 			boolean isContent = false;
@@ -40,7 +41,7 @@ public class ReadHunksFromLog {
 			int nameStart = line.indexOf(":") + 1;
 			int nameEnd = line.indexOf("<");
 			int emailEnd = line.indexOf(">");
-			//System.out.println(line);
+			System.out.println(line);
 			authorName = line.substring(nameStart, nameEnd).trim();
 			authorEmail = line.substring(nameEnd + 1,emailEnd);
 			line = rawCommit.get(index++);

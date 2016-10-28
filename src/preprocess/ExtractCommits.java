@@ -89,11 +89,12 @@ public class ExtractCommits {
 		for (String hash : concernedCommits) {
 			
 			if (!changeMap.containsKey(hash)) continue;
-			
+			//System.out.println(fullHash);
 			// adaptpr for project ChangeLocator
 			
 			String fullHash = changeMap.get(hash);
-			file = new File(revisionLoc + File.separator + fullHash);
+			System.out.println(fullHash);
+            file = new File(revisionLoc + File.separator + fullHash);
 			if (!file.exists())
 				file.mkdir();
 			String commitFile = revisionLoc + File.separator + fullHash + File.separator + fullHash + ".txt";
