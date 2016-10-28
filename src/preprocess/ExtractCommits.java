@@ -8,10 +8,12 @@ import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 import miningChanges.CorpusCreation;
+import utils.ChangeLocator;
 import utils.FileToLines;
 import utils.GitHelp;
 import utils.HgHelp;
@@ -23,6 +25,7 @@ public class ExtractCommits {
 	public static String loc = main.Main.settings.get("workingLoc");
 	public static String repo = main.Main.settings.get("repoDir");
 	public static HashSet<String> concernedCommits;
+	public static HashMap<String,String> changeMap;
 	
 	public static void indexHunks() throws Exception {
 		getCommitsOneLine();
@@ -53,6 +56,9 @@ public class ExtractCommits {
             System.out.println(line);
 			concernedCommits.add(line.split("\t")[0].trim());
 		}
+		
+		changeMap = ChangeLocator.getShortChangeMap();
+
 	}
 		
 	private static boolean isValid(Hunk hunk) {
@@ -80,18 +86,20 @@ public class ExtractCommits {
 		if (!f.exists()) f.mkdir();
 		List<String> hunkIndex = new ArrayList<String>();
 
-		int count = 0;
 		for (String hash : concernedCommits) {
-
-			file = new File(revisionLoc + File.separator + hash);
+			
+			if (!changeMap.containsKey(hash)) continue;
+			String fullHash = changeMap.get(hash);
+			file = new File(revisionLoc + File.separator + fullHash);
 			if (!file.exists())
 				file.mkdir();
-			String commitFile = revisionLoc + File.separator + hash + File.separator + hash + ".txt";
+			String commitFile = revisionLoc + File.separator + fullHash + File.separator + fullHash + ".txt";
 			file = new File(commitFile);
 			if (!file.exists()) {
 				String content = HgHelp.getCommitByRevision(hash, repo);
 				WriteLinesToFile.writeToFiles(content, commitFile);
 			}
+			
 			Commit commit = utils.ReadHunksFromLog.readOneCommitWithHunkGit(commitFile);
 			List<Hunk> hunks = commit.getAllHunks();
 			if (hunks == null) continue;
