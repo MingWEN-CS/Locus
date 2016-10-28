@@ -43,12 +43,13 @@ public class ExtractCommits {
 		if (main.Main.settings.containsKey("concernedCommit"))
 			commitFile = main.Main.settings.get("concernedCommit");
 		List<String> lines = null;
-		if (!commitFile.equals("")) {
+		if (commitFile.equals("")) {
 			lines = FileToLines.fileToLines(loc + File.separator + "logOneline.txt");
 		} else lines = FileToLines.fileToLines(commitFile);
-		
+		System.out.println(commitFile);
 		concernedCommits = new HashSet<String>();
 		for (String line : lines) {
+            System.out.println(line);
 			concernedCommits.add(line.split("\t")[0].trim());
 		}
 	}
@@ -67,7 +68,7 @@ public class ExtractCommits {
 		System.out.println("Extracting Hunks");
 		String revisionLoc = loc + File.separator + "revisions";
 		if (main.Main.settings.containsKey("revisionsLoc"))
-			revisionLoc = main.Main.settings.get("revisionLoc");
+			revisionLoc = main.Main.settings.get("revisionsLoc");
 		File file = new File(revisionLoc);
 		if (!file.exists())
 			file.mkdir();

@@ -23,7 +23,8 @@ public class Main {
 	
 	public static void loadConfigure(String filename) throws Exception {
 		File file = new File(filename);
-		if (!file.exists()) {
+		settings = new HashMap<String,String>();
+        if (!file.exists()) {
 			System.out.println("Configuration File Not Found!");
 			return;
 		} 
