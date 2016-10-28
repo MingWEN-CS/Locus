@@ -59,7 +59,7 @@ public class Main {
 			loadConfigure(args[0]);
 		} else {
 			System.out.println("Using default configuration file");
-			loadConfigure("./configure.txt");
+			loadConfigure("./config.txt");
 		}
 		
 	}
