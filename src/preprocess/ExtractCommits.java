@@ -85,15 +85,17 @@ public class ExtractCommits {
 		f = new File(loc + File.separator + "hunkLog");
 		if (!f.exists()) f.mkdir();
 		List<String> hunkIndex = new ArrayList<String>();
-
+		int count = 0;
 		for (String hash : concernedCommits) {
-			
+			count++;
+			System.out.println(count + ":" + concernedCommits.size());
+			if (count > 10) break;
 			if (!changeMap.containsKey(hash)) continue;
 			//System.out.println(fullHash);
 			// adaptpr for project ChangeLocator
 			
 			String fullHash = changeMap.get(hash);
-			System.out.println(fullHash);
+//			System.out.println(fullHash);
             file = new File(revisionLoc + File.separator + fullHash);
 			if (!file.exists())
 				file.mkdir();
@@ -107,7 +109,7 @@ public class ExtractCommits {
 			Commit commit = utils.ReadHunksFromLog.readOneCommitWithHunkGit(commitFile);
 			List<Hunk> hunks = commit.getAllHunks();
 			if (hunks == null) continue;
-			System.out.println(hash + "\t" + hunks.size());
+//			System.out.println(hash + "\t" + hunks.size());
 			for (Hunk hunk : hunks) {
 				boolean flag = isValid(hunk);
 //				System.out.println(flag);

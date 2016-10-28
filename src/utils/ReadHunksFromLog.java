@@ -87,12 +87,16 @@ public class ReadHunksFromLog {
 //					System.out.println(line);
 					try {
 						preFile = line.substring(4);
+						if (preFile.contains("\t"))
+							preFile = preFile.split("\t")[0].trim();
 					} catch (IndexOutOfBoundsException e) {
 						System.out.println("Exception\t" + line);
 					}
 				} else if (line.startsWith("+++")) {
 					try {
 						postFile = line.substring(4);
+						if (postFile.contains("\t"))
+							postFile = postFile.split("\t")[0].trim();
 					} catch (IndexOutOfBoundsException e) {
 						System.out.println("Exception\t" + line);
 					}
@@ -132,5 +136,8 @@ public class ReadHunksFromLog {
 		Commit commit = readOneCommitWithHunkGit("fff70558a434b6bceb64b4669f5657cf58e69d73.txt");
 		List<Hunk> hunks = commit.getAllHunks();
 		System.out.println(hunks.size());
+		for (Hunk hunk : hunks) {
+			System.out.println(hunk.sourceFile);
+		}
 	}
 }
