@@ -137,7 +137,7 @@ public class ReadHunksFromLog {
 		List<Hunk> hunks = commit.getAllHunks();
 		System.out.println(hunks.size());
 		for (Hunk hunk : hunks) {
-			System.out.println(hunk.sourceFile);
+			System.out.println(hunk.preChangeSet + "\t" + hunk.postChangeSet);
 		}
 	}
 }

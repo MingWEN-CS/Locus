@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 
+import miningChanges.CorpusCreation;
 import preprocess.ExtractCommits;
 import utils.FileToLines;
 
@@ -18,6 +19,9 @@ public class Main {
 	public static void startTask() throws Exception {
 		if (task.equals("indexHunks")) {
 			ExtractCommits.indexHunks();
+		}
+		else if (task.equals("corpusCreation")) {
+			CorpusCreation.createCorpus();
 		}
 	}
 	
