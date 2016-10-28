@@ -29,7 +29,8 @@ public class ReadHunksFromLog {
 		String command = null;
 		Patch patch = null;
 		List<String> content = new ArrayList<String>();
-		List<String> rawCommit = FileToLines.fileToLines(file);
+//		System.out.println(file);
+        List<String> rawCommit = FileToLines.fileToLines(file);
 		int index = 0;
 		try {
 			boolean isContent = false;
