@@ -89,7 +89,7 @@ public class ExtractCommits {
 		for (String hash : concernedCommits) {
 			count++;
 			System.out.println(count + ":" + concernedCommits.size());
-			if (count > 10) break;
+//			if (count > 10) break;
 			if (!changeMap.containsKey(hash)) continue;
 			//System.out.println(fullHash);
 			// adaptpr for project ChangeLocator
@@ -120,7 +120,7 @@ public class ExtractCommits {
 				
 				sourceFile = sourceFile.substring(2,sourceFile.length()).replace("/", ".");
 				
-				String savePath = hash + "@" + hunk.preChangeSet + "@" + hunk.postChangeSet + "@" + file + "@" + hunk.bs + "@" + hunk.bl + "@" + hunk.as + "@" + hunk.al + ".txt";
+				String savePath = hash + "@" + hunk.preChangeSet + "@" + hunk.postChangeSet + "@" + sourceFile + "@" + hunk.bs + "@" + hunk.bl + "@" + hunk.as + "@" + hunk.al + ".txt";
 				String content = commit.description + " " + commit.userName;
 
 				List<String> words = CorpusCreation.getProcessedWords(content);
