@@ -35,19 +35,35 @@ public class ReadHunksFromLog {
 		try {
 			boolean isContent = false;
 			line = rawCommit.get(index++);
-			changeSet = line.substring(7);
+			while (!line.startsWith("changeset"))
+				line = rawCommit.get(index++);
+			String[] split = line.split(":");
+			changeSet = split[split.length - 1].trim();
+			
 			line = rawCommit.get(index++);
-			if (!line.startsWith("Author")) line = rawCommit.get(index++);	
+			while (!line.startsWith("user")) 
+				line = rawCommit.get(index++);
+			
+		
 			int nameStart = line.indexOf(":") + 1;
 			int nameEnd = line.indexOf("<");
 			int emailEnd = line.indexOf(">");
-			System.out.println(line);
+			if (nameEnd == -1)
+				nameEnd = line.length();
+			if (emailEnd == -1)
+				emailEnd = line.length();
+			
 			authorName = line.substring(nameStart, nameEnd).trim();
-			authorEmail = line.substring(nameEnd + 1,emailEnd);
+			authorEmail = line.substring(nameEnd == line.length() ? nameEnd : nameEnd + 1, emailEnd);
+			
 			line = rawCommit.get(index++);
+			
+			while (!line.startsWith("date")) 
+				line = rawCommit.get(index++);
+			
 			date = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z").parse(line.substring(line.indexOf(":") + 1).trim());
 			
-//			line = rawCommit.get(index++);
+
 			description = "";
 			while (index < rawCommit.size() && line != null && !line.startsWith("diff")) {
 				line = rawCommit.get(index);
@@ -113,11 +129,8 @@ public class ReadHunksFromLog {
 	}
 	
 	public static void main(String[] args) {
-		Commit commit = readOneCommitWithHunkGit("6ec725df9c10ab9e3045d1306f6fdcde1d752eb6.txt");
+		Commit commit = readOneCommitWithHunkGit("fff70558a434b6bceb64b4669f5657cf58e69d73.txt");
 		List<Hunk> hunks = commit.getAllHunks();
 		System.out.println(hunks.size());
-		for (Hunk hunk : hunks) {
-//			.out.println(hunk.toString());
-		}
 	}
 }
