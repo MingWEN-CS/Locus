@@ -65,6 +65,7 @@ public class ReadBugsFromXML {
 					if (fileName.contains("/"))	fileName = fileName.replace("/", ".");
 					oneBug.addFile(fileName);
 				}
+				
 				fixedBugs.add(oneBug);
 				//System.out.println(openDate.toString() + "\t" + fixDate.toString())
 			}

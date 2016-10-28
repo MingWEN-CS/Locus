@@ -15,6 +15,8 @@ import utils.WriteLinesToFile;
 
 public class ExtractCodeLikeTerms {
 	
+	public HashMap<String,Integer> cltMaps;
+	
 	public List<String> extractCLTFromCodeSnippet(final String content) {
 //		List<String> clts = new ArrayList<String>();
 //		
@@ -41,7 +43,7 @@ public class ExtractCodeLikeTerms {
 		return Character.isLetter(c) || Character.isDigit(c);
 	}
 	
-	private List<String> extractCLTFromNaturalLanguage(final String content) {
+	public List<String> extractCLTFromNaturalLanguage(final String content) {
 		List<String> clts = new ArrayList<String>();
 		HashSet<String> rawTerms = new HashSet<String>();
 		String[] words = Splitter.splitNatureLanguageWithUnderline(content);
@@ -139,7 +141,7 @@ public class ExtractCodeLikeTerms {
 	public HashMap<String,Integer> extractCodeLikeTerms() {
 		String filename = main.Main.settings.get("workingLoc") + File.separator + "codeLikeTerms.txt";
 		File file = new File(filename);
-		HashMap<String,Integer> cltMaps = new HashMap<String,Integer>();
+		cltMaps = new HashMap<String,Integer>();
 		if (!file.exists()) {
 			cltMaps = createCodeLikeTerms();
 			List<String> lines = new ArrayList<String>();
@@ -219,8 +221,11 @@ public class ExtractCodeLikeTerms {
 		
 	} 
 	
+	
+	
 	public static void entry() {
 		ExtractCodeLikeTerms eclt = new ExtractCodeLikeTerms();
 		eclt.extractCodeLikeTerms();
+		
 	}
 }
