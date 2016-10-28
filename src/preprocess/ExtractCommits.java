@@ -40,8 +40,8 @@ public class ExtractCommits {
 
 	public static void loadCommits() {
 		String commitFile = "";
-		if (main.Main.settings.containsKey("validCommit"))
-			commitFile = main.Main.settings.get("validCommit");
+		if (main.Main.settings.containsKey("concernedCommit"))
+			commitFile = main.Main.settings.get("concernedCommit");
 		List<String> lines = null;
 		if (!commitFile.equals("")) {
 			lines = FileToLines.fileToLines(loc + File.separator + "logOneline.txt");

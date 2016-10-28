@@ -30,7 +30,7 @@ public class Main {
 		else {
 			List<String> lines = FileToLines.fileToLines(filename);
 			for (String line : lines) {
-				if (!line.startsWith("#")) {
+				if (!line.startsWith("#") && line.contains("=")) {
 					settings.put(line.split("=")[0].trim(), line.split("=")[1].trim());
 				}
 			}
