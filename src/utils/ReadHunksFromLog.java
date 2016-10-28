@@ -40,7 +40,7 @@ public class ReadHunksFromLog {
 			int nameStart = line.indexOf(":") + 1;
 			int nameEnd = line.indexOf("<");
 			int emailEnd = line.indexOf(">");
-			//System.out.println(line);
+			System.out.println(line);
 			authorName = line.substring(nameStart, nameEnd).trim();
 			authorEmail = line.substring(nameEnd + 1,emailEnd);
 			line = rawCommit.get(index++);
@@ -112,10 +112,11 @@ public class ReadHunksFromLog {
 	}
 	
 	public static void main(String[] args) {
-		Commit commit = readOneCommitWithHunkGit("fff70558a434b6bceb64b4669f5657cf58e69d73.txt");
+		Commit commit = readOneCommitWithHunkGit("6ec725df9c10ab9e3045d1306f6fdcde1d752eb6.txt");
 		List<Hunk> hunks = commit.getAllHunks();
+		System.out.println(hunks.size());
 		for (Hunk hunk : hunks) {
-			System.out.println(hunk.toString());
+//			.out.println(hunk.toString());
 		}
 	}
 }
