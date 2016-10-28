@@ -94,7 +94,8 @@ public class ExtractCommits {
 			}
 			Commit commit = utils.ReadHunksFromLog.readOneCommitWithHunkGit(commitFile);
 			List<Hunk> hunks = commit.getAllHunks();
-//			System.out.println(hash + "\t" + hunks.size());
+			if (hunks == null) continue;
+			System.out.println(hash + "\t" + hunks.size());
 			for (Hunk hunk : hunks) {
 				boolean flag = isValid(hunk);
 //				System.out.println(flag);

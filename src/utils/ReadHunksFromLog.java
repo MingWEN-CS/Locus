@@ -7,6 +7,7 @@ import java.util.List;
 
 import utils.FileToLines;
 import generics.Commit;
+import generics.Hunk;
 import generics.Patch;
 
 public class ReadHunksFromLog {
@@ -108,5 +109,13 @@ public class ReadHunksFromLog {
 			e.printStackTrace();
 		}
 		return commit;
+	}
+	
+	public static void main(String[] args) {
+		Commit commit = readOneCommitWithHunkGit("fff70558a434b6bceb64b4669f5657cf58e69d73.txt");
+		List<Hunk> hunks = commit.getAllHunks();
+		for (Hunk hunk : hunks) {
+			System.out.println(hunk.toString());
+		}
 	}
 }
