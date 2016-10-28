@@ -89,6 +89,9 @@ public class ExtractCommits {
 		for (String hash : concernedCommits) {
 			
 			if (!changeMap.containsKey(hash)) continue;
+			
+			// adaptpr for project ChangeLocator
+			
 			String fullHash = changeMap.get(hash);
 			file = new File(revisionLoc + File.separator + fullHash);
 			if (!file.exists())
