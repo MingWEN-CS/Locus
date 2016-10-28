@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import miningChanges.CorpusCreation;
+import miningChanges.ExtractCodeLikeTerms;
 import preprocess.ExtractCommits;
 import utils.FileToLines;
 
@@ -23,6 +24,8 @@ public class Main {
 		else if (task.equals("corpusCreation")) {
 			CorpusCreation.createCorpus();
 		}
+		else if (task.equals("extractCodeLikeTerms"))
+			ExtractCodeLikeTerms
 	}
 	
 	public static void loadConfigure(String filename) throws Exception {

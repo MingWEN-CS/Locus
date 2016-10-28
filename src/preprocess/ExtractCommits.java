@@ -86,6 +86,8 @@ public class ExtractCommits {
 		if (!f.exists()) f.mkdir();
 		List<String> hunkIndex = new ArrayList<String>();
 		int count = 0;
+		List<String> hashCLTIndex = new ArrayList<String>();
+		List<String> hunkCLTIndex = new ArrayList<String>();
 		for (String hash : concernedCommits) {
 			count++;
 			System.out.println(count + ":" + concernedCommits.size());
