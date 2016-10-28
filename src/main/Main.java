@@ -25,7 +25,7 @@ public class Main {
 			CorpusCreation.createCorpus();
 		}
 		else if (task.equals("extractCodeLikeTerms"))
-			ExtractCodeLikeTerms
+			ExtractCodeLikeTerms.entry();
 	}
 	
 	public static void loadConfigure(String filename) throws Exception {
