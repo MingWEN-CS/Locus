@@ -14,6 +14,7 @@ import java.util.List;
 import miningChanges.CorpusCreation;
 import utils.FileToLines;
 import utils.GitHelp;
+import utils.HgHelp;
 import utils.WriteLinesToFile;
 
 public class ExtractCommits {
@@ -88,7 +89,7 @@ public class ExtractCommits {
 			String commitFile = revisionLoc + File.separator + hash + File.separator + hash + ".txt";
 			file = new File(commitFile);
 			if (!file.exists()) {
-				String content = GitHelp.gitShow(hash, repo);
+				String content = HgHelp.getCommitByRevision(hash, repo);
 				WriteLinesToFile.writeToFiles(content, commitFile);
 			}
 			Commit commit = utils.ReadHunksFromLog.readOneCommitWithHunkGit(commitFile);
