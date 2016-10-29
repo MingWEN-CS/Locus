@@ -6,6 +6,7 @@ import java.util.List;
 
 import miningChanges.CorpusCreation;
 import miningChanges.ExtractCodeLikeTerms;
+import miningChanges.ObtainVSMScore;
 import preprocess.ExtractCommits;
 import utils.FileToLines;
 
@@ -16,6 +17,7 @@ public class Main {
 	public static String repoDir = "";
 	public static String workingLoc = "";
 	public static String bugReport = "";
+	public static String changeOracle = "";
 	
 	public static void startTask() throws Exception {
 		if (task.equals("indexHunks")) {
@@ -26,6 +28,10 @@ public class Main {
 		}
 		else if (task.equals("extractCodeLikeTerms"))
 			ExtractCodeLikeTerms.entry();
+		else if (task.equals("obtainSimilarity")) {
+			ObtainVSMScore os = new ObtainVSMScore();
+			os.obtainSimilarity();
+		}
 	}
 	
 	public static void loadConfigure(String filename) throws Exception {
@@ -52,8 +58,10 @@ public class Main {
 			workingLoc = settings.get("workingLoc");
 		if (settings.containsKey("bugReport"))
 			bugReport = settings.get("bugReport");
+		if (settings.containsKey("oracle"))
+			changeOracle = settings.get("oracle");
 		
-		if (task.equals("") || repoDir.equals("") || workingLoc.equals("") || bugReport.equals("")) {
+		if (task.equals("") || repoDir.equals("") || workingLoc.equals("") || bugReport.equals("") || changeOracle.equals("")) {
 			System.out.println("Missing Required Configuration");
 			return;
 		} else {
