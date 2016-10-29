@@ -318,19 +318,19 @@ public class ObtainVSMScore {
 		List<String> linesCLT = new ArrayList<String>();
 		List<String> combineResults = new ArrayList<String>();
 		
-		String resultNLFile = loc + "resultsNL" + ".txt";
-		String resultCLTFile = loc + "resultsCLT" + ".txt";
-		String resultFile = loc + "results" + ".txt";
+		String resultNLFile = loc + File.separator + "resultsNL" + ".txt";
+		String resultCLTFile = loc + File.separator + "resultsCLT" + ".txt";
+		String resultFile = loc + File.separator + "results" + ".txt";
 		for (Bug bug : bugs) {
 			int bid = bug.id;
-			System.out.print(bid);
+			System.out.println(bid);
 			List<Integer> hunks = new ArrayList<Integer>();
 			for (int i = 0; i < hunkIndex.size(); i++) {
 				if (potentialRevisions.get(bid).get(0).contains(hunkChangeMap.get(i)))
 					hunks.add(i);
 			}
 			
-			System.out.println(hunks.toString());
+//			System.out.println(hunks.toString());
 			List<Integer> NLHunksList = new ArrayList<Integer>(hunks);
 			List<Integer> CLTHunksList = new ArrayList<Integer>(hunks);
 			HashMap<Integer,Double> resultNL = getVSMScoreNL(bug,NLHunksList);
