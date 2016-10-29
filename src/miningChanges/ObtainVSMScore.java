@@ -15,7 +15,6 @@ public class ObtainVSMScore {
 	public String loc = main.Main.settings.get("workingLoc");
 	public HashMap<Integer, List<String>> bugTermList;
 	public List<Bug> bugs;
-	public HashMap<Integer,Integer> hunkSourceMap;
 	public HashMap<Integer,List<Integer>> bugCLTIndex;
 	public HashMap<String,List<Integer>> logCLTs;
 	public HashMap<String,List<Integer>> hunkCLTs;
@@ -146,18 +145,19 @@ public class ObtainVSMScore {
 		int bid = bug.id;
 		List<String> bugTerm = bugTermList.get(bid);
 		corpus.addAll(bugTerm);
+		HashSet<String> relatedChanges = new HashSet<String>();
 		for (int id : hunkId) {
 			List<String> hunkTerm = hunkTermList.get(id);
 			corpus.addAll(hunkTerm);
+			relatedChanges.add(hunkChangeMap.get(id));
 		}
 		
 		HashMap<String,Integer> corpusInverseIndex = new HashMap<String,Integer>();
 		List<String> corpusIndex = new ArrayList<String>();
 		List<HashMap<Integer,Integer>> hunkTermCount = new  ArrayList<HashMap<Integer,Integer>>();
 		List<HashMap<Integer,Double>> hunkTermFreq = new ArrayList<HashMap<Integer,Double>>();
-		HashMap<Integer, HashSet<Integer>> termHunkAppears = new HashMap<Integer,HashSet<Integer>>();
 		HashMap<Integer,Double> termHunkFreq = new HashMap<Integer,Double>();
-		
+		HashMap<Integer, HashSet<String>> termChangeCount = new HashMap<Integer,HashSet<String>>();
 		
 		for (String term : corpus) {
 			corpusInverseIndex.put(term, corpusIndex.size());
@@ -189,13 +189,17 @@ public class ObtainVSMScore {
 			HashMap<Integer,Double> tmp1 = new HashMap<Integer,Double>();
 			for (int index : tmp.keySet()) {
 				tmp1.put(index, Math.log(tmp.get(index)) + 1);
-				if (!termHunkAppears.containsKey(index)) 
-					termHunkAppears.put(index, new HashSet<Integer>());
-				termHunkAppears.get(index).add(hunkSourceMap.get(index));
-//				if (!termHunkCount.containsKey(index)) termHunkCount.put(index, 1);
-//				else termHunkCount.put(index, termHunkCount.get(index) + 1);
+				
+				if (!termChangeCount.containsKey(index))
+					termChangeCount.put(index, new HashSet<String>());
+				termChangeCount.get(index).add(hunkChangeMap.get(hid));
 			}
+			
 			hunkTermFreq.add(tmp1);
+		}
+		
+		for (int index : termChangeCount.keySet()) {
+			termHunkFreq.put(index, Math.log(relatedChanges.size() * 1.0 / termChangeCount.get(index).size()));
 		}
 		
 		double bugNorm = 0;
