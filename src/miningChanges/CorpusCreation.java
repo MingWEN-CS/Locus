@@ -89,7 +89,8 @@ public class CorpusCreation {
 			List<String> clts = eclt.extractCLTFromNaturalLanguage(content);
 			String line = "" + bug.id;
 			for (String clt : clts) {
-				line += "\t" + cltMaps.get(clt);
+				if (cltMaps.containsKey(clt))
+				    line += "\t" + cltMaps.get(clt);
 			}
 			lines.add(line);
 		}
@@ -119,7 +120,6 @@ public class CorpusCreation {
 		for (String hash : concernedCommits) {
 			count++;
 			System.out.println(count + ":" + concernedCommits.size());
-			if (count > 10) break;
 			if (!changeMap.containsKey(hash)) continue;
 			//System.out.println(fullHash);
 			// adaptpr for project ChangeLocator
@@ -148,8 +148,9 @@ public class CorpusCreation {
 			List<String> clts = eclt.extractCLTFromNaturalLanguage(content);
 			String line = "" + hash;
 			for (String clt : clts) {
-				if (cltMaps.get(clt) == null) System.out.println(clts.toString());
-				line += "\t" + cltMaps.get(clt);
+//				if (cltMaps.get(clt) == null) System.out.println(clts.toString());
+                if (cltMaps.containsKey(clt))
+				    line += "\t" + cltMaps.get(clt);
 			}
 			hashCLTIndex.add(line);
 			
@@ -193,25 +194,29 @@ public class CorpusCreation {
 				clts = eclt.extractCLTFromCodeSnippet(sourceFile);
 				line = index + ":f";
 				for (String clt : clts) {
-					line += "\t" + cltMaps.get(clt);
+					if (cltMaps.containsKey(clt))
+					    line += "\t" + cltMaps.get(clt);
 				}
 				hunkCLTIndex.add(line);
 				clts = eclt.extractCLTFromCodeSnippet(unchangedCode);
 				line = index + ":0";
 				for (String clt : clts) {
-					line += "\t" + cltMaps.get(clt);
+					if (cltMaps.containsKey(clt))
+					    line += "\t" + cltMaps.get(clt);
 				}
 				hunkCLTIndex.add(line);
 				clts = eclt.extractCLTFromCodeSnippet(deleteCode);
 				line = index + ":-1";
 				for (String clt : clts) {
-					line += "\t" + cltMaps.get(clt);
+					if (cltMaps.containsKey(clt))
+					    line += "\t" + cltMaps.get(clt);
 				}
 				hunkCLTIndex.add(line);
 				clts = eclt.extractCLTFromCodeSnippet(addCode);
 				line = index + ":1";
 				for (String clt : clts) {
-					line += "\t" + cltMaps.get(clt);
+					if (cltMaps.containsKey(clt))
+                        line += "\t" + cltMaps.get(clt);
 				}
 				hunkCLTIndex.add(line);
 			}
@@ -234,7 +239,8 @@ public class CorpusCreation {
 	}
 	
 	public static void createCorpus() throws Exception {
-		processBugReports();
+		loadCommits();
+        processBugReports();
 		processHunks();
 	}
 }
