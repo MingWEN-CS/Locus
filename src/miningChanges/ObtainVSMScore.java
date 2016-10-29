@@ -116,12 +116,11 @@ public class ObtainVSMScore {
 	public void loadBugFiles() {
 		bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
 		bugTermList = new HashMap<Integer, List<String>>();
-		String bugDir = loc + "bugText";
-		File file = new File(bugDir);
-		File[] bugs = file.listFiles();
-		for (File bug : bugs) {
-			int bugId = Integer.parseInt(bug.getName().substring(0, bug.getName().indexOf(".")));
-			List<String> lines = FileToLines.fileToLines(bug.getAbsolutePath());
+		String bugDir = loc + File.separator + "bugText";
+	
+		for (Bug bug : bugs) {
+			int bugId = bug.id;
+			List<String> lines = FileToLines.fileToLines(bugDir + File.separator + bugId + ".txt");
 			bugTermList.put(bugId, lines);
 		}
 	}
