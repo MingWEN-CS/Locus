@@ -197,10 +197,11 @@ public class ObtainVSMScore {
 			
 			hunkTermFreq.add(tmp1);
 		}
-		
+		System.out.println(termChangeCount.size());
 		for (int index : termChangeCount.keySet()) {
 			termHunkFreq.put(index, Math.log(relatedChanges.size() * 1.0 / termChangeCount.get(index).size()));
-		}
+		    System.out.println(index + "\t" + termHunkFreq.get(index));
+        }
 		
 		double bugNorm = 0;
 		for (int k : bugTermFreq.keySet()) {
@@ -222,6 +223,7 @@ public class ObtainVSMScore {
 				consine += bugTermFreq.get(k) * termFreq.get(k) * termHunkFreq.get(k) * termHunkFreq.get(k);
 				
 			}
+//            System.out.println(consine + "\t" + bugNorm + "\t" + hunkNorm);
 			double similarity = consine / (Math.sqrt(bugNorm) * Math.sqrt(hunkNorm));
 //			similarity *= hunkLength.get(index);
 			results.put(hid, similarity);
@@ -368,6 +370,7 @@ public class ObtainVSMScore {
 			}
 			
 			combineResults.add(line);
+            break;
 			
 		}
 		WriteLinesToFile.writeLinesToFile(linesCLT, resultCLTFile);
