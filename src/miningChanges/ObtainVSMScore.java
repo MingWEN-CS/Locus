@@ -127,7 +127,12 @@ public class ObtainVSMScore {
 	public void loadHunkFiles() {
 		hunkTermList = new ArrayList<List<String>>();
 		String hunkIndexName = loc + File.separator + "hunkIndex.txt";
-		hunkIndex = FileToLines.fileToLines(hunkIndexName);
+		List<String> lines = FileToLines.fileToLines(hunkIndexName);
+		hunkIndex = new ArrayList<String>();
+		for (String line : lines) {
+			hunkIndex.add(line.split("\t")[0]);
+		}
+//		hunkIndex = FileToLines.fileToLines(hunkIndexName);
 		for (int i = 0; i < hunkIndex.size(); i++) {
 			String line = hunkIndex.get(i);
 			List<String> terms = new ArrayList<String>();
