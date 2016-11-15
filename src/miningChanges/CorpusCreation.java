@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.commons.math3.optim.nonlinear.scalar.LineSearch;
+
 import utils.ChangeLocator;
 import utils.ExtractCodeElementsFromSourceFile;
 import utils.FileListUnderDirectory;
@@ -54,9 +56,7 @@ public class CorpusCreation {
             System.out.println(line);
 			concernedCommits.add(line.split("\t")[0].trim());
 		}
-		
 		changeMap = ChangeLocator.getShortChangeMap();
-
 	}
 	
 	public static List<String> getProcessedWords(String content) {
@@ -145,6 +145,7 @@ public class CorpusCreation {
 		List<String> hunkCLTIndex = new ArrayList<String>();
 		ExtractCodeLikeTerms eclt = new ExtractCodeLikeTerms();
 		HashMap<String,Integer> cltMaps = eclt.extractCodeLikeTerms();
+		HashMap<Integer, HashSet<Integer>> sourceHunkLinks = new HashMap<Integer, HashSet<Integer>>();
 		for (String hash : concernedCommits) {
 			count++;
 			System.out.println(count + ":" + concernedCommits.size());
@@ -205,6 +206,12 @@ public class CorpusCreation {
 				words = CorpusCreation.getProcessedWords(content);
 				WriteLinesToFile.writeLinesToFile(words, loc + File.separator + "hunkCode" + File.separator + savePath);				
 				int index = hunkIndex.size();
+				int sourceIndex = getFileIndex(sourceFile);
+				if (!sourceHunkLinks.containsKey(sourceIndex)) {
+					sourceHunkLinks.put(sourceIndex, new HashSet<Integer>());
+				}
+				sourceHunkLinks.get(sourceIndex).add(index);
+				
 				hunkIndex.add(savePath + "\t" + hunk.isSemantic());
 				
 				String unchangedCode = "";
@@ -255,6 +262,16 @@ public class CorpusCreation {
 		WriteLinesToFile.writeLinesToFile(hashCLTIndex, filename);
 		filename = loc + File.separator + "hunkCLTIndex.txt";
 		WriteLinesToFile.writeLinesToFile(hunkCLTIndex, filename);
+		List<String> lineStrings = new ArrayList<String>();
+		for (int sourceId : sourceHunkLinks.keySet()) {
+			String line = "" + sourceId;
+			HashSet<Integer> hids = sourceHunkLinks.get(sourceId);
+			for (int hid : hids)
+				line += "\t" + hid;
+			lineStrings.add(line);
+		}
+		filename = loc + File.separator + "sourceHunkLink.txt";
+		WriteLinesToFile.writeLinesToFile(lineStrings, filename);
 	}
 	
 	private static boolean isValid(Hunk hunk) {
