@@ -373,10 +373,7 @@ public class ObtainVSMScore {
 			for (String change : result.keySet()) {
 				line += "\t" + change + ":" + result.get(change);
 			}
-			
 			combineResults.add(line);
-            break;
-			
 		}
 		WriteLinesToFile.writeLinesToFile(linesCLT, resultCLTFile);
 		WriteLinesToFile.writeLinesToFile(linesNL, resultNLFile);

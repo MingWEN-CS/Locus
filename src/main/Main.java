@@ -6,7 +6,7 @@ import java.util.List;
 
 import miningChanges.CorpusCreation;
 import miningChanges.ExtractCodeLikeTerms;
-import miningChanges.FinalResultsAndRanking;
+import miningChanges.ProduceChangeLevelResults;
 import miningChanges.ObtainVSMScore;
 import preprocess.ExtractCommits;
 import utils.FileToLines;
@@ -25,6 +25,7 @@ public class Main {
 			ExtractCommits.indexHunks();
 		}
 		else if (task.equals("corpusCreation")) {
+			// Create the corpus change logs, hunks, and create the code like term corpus
 			CorpusCreation.createCorpus();
 		}
 		else if (task.equals("extractCodeLikeTerms"))
@@ -33,7 +34,7 @@ public class Main {
 			ObtainVSMScore os = new ObtainVSMScore();
 			os.obtainSimilarity();
 		} else if (task.equals("produceFinalResults")) {
-			FinalResultsAndRanking rank = new FinalResultsAndRanking();
+			ProduceChangeLevelResults rank = new ProduceChangeLevelResults();
 			rank.getFinalResults();
 		} else if (task.equals("all")) {
 			CorpusCreation.createCorpus();
@@ -43,7 +44,7 @@ public class Main {
 			ObtainVSMScore os = new ObtainVSMScore();
 			os.obtainSimilarity();
 			System.out.println("Finish Obtaing VSM Similarities");
-			FinalResultsAndRanking rank = new FinalResultsAndRanking();
+			ProduceChangeLevelResults rank = new ProduceChangeLevelResults();
 			rank.getFinalResults();
 			System.out.println("Get Final Results");
 		}

@@ -14,8 +14,9 @@ import generics.Bug;
 import generics.Pair;
 import utils.FileToLines;
 import utils.ReadBugsFromXML;
+import utils.WriteLinesToFile;
 
-public class FinalResultsAndRanking {
+public class ProduceChangeLevelResults {
 	public String loc = main.Main.settings.get("workingLoc");
 	private HashMap<Integer,HashSet<String>> inducingRevisions;
 	private HashMap<Integer,List<HashSet<String>>> potentialRevisions;
@@ -23,14 +24,20 @@ public class FinalResultsAndRanking {
 	public List<Bug> bugs;
 	HashMap<Integer, HashMap<String,Double>> hunkResults;
 	
-	public void loadOracles() {
+	public boolean loadOracles() {
 		String filename = main.Main.changeOracle;
+		
+		File file = new File(filename);
+		if (!file.exists()) {
+			System.err.println("cound not find change level oracles");
+			return false;
+		}
+		
 		List<String> lines = FileToLines.fileToLines(filename);
 		int index = 0;
 		int depth = 3;
 		
 		bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
-		
 		inducingRevisions = new HashMap<Integer,HashSet<String>>();
 		potentialRevisions = new HashMap<Integer,List<HashSet<String>>>();
 		while (index < lines.size()) {
@@ -59,6 +66,8 @@ public class FinalResultsAndRanking {
 			}
 			index++;
 		}
+		
+		return true;
 	}
 	
 	public void loadResults() {
@@ -77,18 +86,20 @@ public class FinalResultsAndRanking {
 	}
 	
 	public void loadRevisionTime() throws ParseException {
-		List<String> lines = FileToLines.fileToLines(main.Main.settings.get("revisionInfo"));
+		List<String> lines = FileToLines.fileToLines(main.Main.settings.get("workingLoc") + File.separator + "logOneline.txt");
 		revisionTime = new HashMap<String, Long>();
 		for (String line : lines) {
+//			System.out.println(line);
 			String[] splits = line.split("\t");
 			String revisionNO = splits[0];
 			Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z").parse(splits[4]);
-			revisionTime.put(revisionNO, date.getTime());
+			revisionTime.put(revisionNO.substring(0,12), date.getTime());
 		}
 	}
 	
 	public void integrateResults() {
 		List<List<Integer>> ranks = new ArrayList<List<Integer>>();
+		List<String> resultsLines = new ArrayList<String>();
 		for (Bug bug : bugs) {
 			int bid = bug.id;
 		
@@ -109,9 +120,12 @@ public class FinalResultsAndRanking {
 			HashMap<String,Double> results = hunkResults.get(bid);
 			
 			for (String change : results.keySet()) {
+//				System.out.println(change + "\t" + revisionTime.get(change));
+				if (revisionTime.containsKey(change) && revisionTime.get(change) > bug.reportTime) {
+					continue;
+				}
 				if (timeScore.containsKey(change))
-					results.put(change, results.get(change) + 0.2 * timeScore.get(change));
-				else results.put(change, 0.0);
+					results.put(change, results.get(change) + 0.1 * timeScore.get(change));
 			}
 			
 			List<Pair<String, Double>> finalRanks = new ArrayList<Pair<String,Double>>();
@@ -128,25 +142,31 @@ public class FinalResultsAndRanking {
 					rank.add(i);
 			}
 			ranks.add(rank);
-			System.out.println(rank.toString());
+//			System.out.println(potentialRevisions.get(bid).get(0).size() + "\t" + rank.toString() + "\t" + finalRanks.toString());
 		}
 		
 		int N = 10;
 		double[] topN = EvaluationMetric.topN(ranks, N);
 		double map = EvaluationMetric.MAP(ranks);
 		double mrr = EvaluationMetric.MRR(ranks);
+		resultsLines.add("map:\t" + map);
+		resultsLines.add("mrr:\t" + mrr);
 		
 		System.out.println(map + "\t" + mrr);
 		for (int i = 0; i < N; i++) {
 			System.out.print(topN[i] + "\t");
+			resultsLines.add("top@" + (i + 1) + "\t" + topN[i]);
 		}
 		System.out.println();
+		String filename = main.Main.settings.get("workingLoc") + File.separator + "fileLevelResults.txt";
+		WriteLinesToFile.writeLinesToFile(resultsLines, filename);
 	}
 	
 	public void getFinalResults() throws ParseException {
-		loadOracles();
-		loadResults();
-		loadRevisionTime();
-		integrateResults();
+		if (loadOracles()) {
+			loadResults();
+			loadRevisionTime();
+			integrateResults();
+		}
 	}
 }

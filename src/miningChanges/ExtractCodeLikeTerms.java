@@ -8,6 +8,7 @@ import java.util.List;
 
 import utils.ChangeLocator;
 import utils.ExtractCodeElementsFromSourceFile;
+import utils.FileListUnderDirectory;
 import utils.FileToLines;
 import utils.Splitter;
 import utils.Stopword;
@@ -156,40 +157,7 @@ public class ExtractCodeLikeTerms {
 		}
 		return cltMaps;
 	}
-	
-	private HashSet<String> getSourceFileList() {
-		String commitFile = "";
-		String loc = main.Main.settings.get("workingLoc");
-		if (main.Main.settings.containsKey("concernedCommit"))
-			commitFile = main.Main.settings.get("concernedCommit");
-		List<String> lines = null;
-		if (commitFile.equals("")) {
-			lines = FileToLines.fileToLines(loc + File.separator + "logOneline.txt");
-		} else lines = FileToLines.fileToLines(commitFile);
-		System.out.println(commitFile);
-		HashSet<String> concernedCommits = new HashSet<String>();
-		for (String line : lines) {
-            System.out.println(line);
-			concernedCommits.add(line.split("\t")[0].trim());
-		}
 		
-		HashMap<String,String> changeMap = ChangeLocator.getShortChangeMap();
-		String revisionLoc = main.Main.settings.get("revisionsLoc");
-		HashSet<String> filelist = new HashSet<String>();
-		for (String hash : concernedCommits) {
-			if (!changeMap.containsKey(hash)) continue;			
-			String fullHash = changeMap.get(hash);
-			File file = new File(revisionLoc + File.separator + fullHash);
-			File[] files = file.listFiles();
-			for (File f : files) {
-				if (f.getName().endsWith(".java"))
-					filelist.add(f.getAbsolutePath());
-					
-			}
-		}
-		return filelist;
-	}
-	
 	private boolean isValid(String term) {
 		boolean flag = true;
 		if (term.length() < 5 && !term.contains("_")) flag = false;
@@ -200,7 +168,7 @@ public class ExtractCodeLikeTerms {
 	private HashMap<String,Integer> createCodeLikeTerms() {
 		HashMap<String,Integer> CLTMaps = new HashMap<String,Integer>();
 		HashSet<String> cltCandidates = new HashSet<String>();
-		HashSet<String> lines = getSourceFileList();
+		List<String> lines = FileListUnderDirectory.getFileListUnder(main.Main.settings.get("repoLoc"), ".java");
 		HashSet<String> codeLikeTermCorpus = new HashSet<String>();
 		for (String line : lines) {
 			if (line.contains("test") || line.contains("Test")) continue;
@@ -221,11 +189,8 @@ public class ExtractCodeLikeTerms {
 		
 	} 
 	
-	
-	
 	public static void entry() {
 		ExtractCodeLikeTerms eclt = new ExtractCodeLikeTerms();
 		eclt.extractCodeLikeTerms();
-		
 	}
 }

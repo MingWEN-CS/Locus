@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import utils.ChangeLocator;
+import utils.ExtractCodeElementsFromSourceFile;
+import utils.FileListUnderDirectory;
 import utils.FileToLines;
 import utils.GitHelp;
 import utils.HgHelp;
@@ -27,6 +29,7 @@ public class CorpusCreation {
 	public static String repo = main.Main.settings.get("repoDir");
 	public static HashSet<String> concernedCommits;
 	public static HashMap<String,String> changeMap;
+	public static HashMap<String,Integer> sourceFileIndex;
 	
 	public static void getCommitsOneLine() throws Exception{
 		String logFile = loc + File.separator + "logOneline.txt";
@@ -68,18 +71,34 @@ public class CorpusCreation {
 		return processedWords;
 	}
 	
+	private static int getFileIndex(String filename) {
+		HashMap<String, Integer> candidateFileSet = new HashMap<String,Integer>();
+		for (String source : sourceFileIndex.keySet()) {
+			if (source.endsWith(filename) || filename.endsWith(source))
+				candidateFileSet.put(source, sourceFileIndex.get(source));
+		}
+		int index = -1;
+		int length = Integer.MAX_VALUE;
+		for (String candidateString : candidateFileSet.keySet()) {
+			if (candidateString.length() < length) {
+				length = candidateString.length();
+				index = candidateFileSet.get(candidateString);
+			}
+		}
+		
+		return index;
+	}
+	
 	public static void processBugReports() {
 		String proDir = main.Main.settings.get("workingLoc");
-
-		
 		List<Bug> bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
-		
 		File file = new File(proDir + File.separator + "bugText");
 		if (!file.exists()) file.mkdir();
 		System.out.println("The number of bugs:" + bugs.size());
 		ExtractCodeLikeTerms eclt = new ExtractCodeLikeTerms();
-		HashMap<String,Integer> cltMaps = eclt.extractCodeLikeTerms();
+		HashMap<String, Integer> cltMaps = eclt.extractCodeLikeTerms();
 		List<String> lines = new ArrayList<String>();
+		List<String> bugSourceLink = new ArrayList<String>();
 		for (Bug bug : bugs) {
 			String bugContent = bug.toString();
 			List<String> processedWords = getProcessedWords(bugContent);
@@ -93,9 +112,18 @@ public class CorpusCreation {
 				    line += "\t" + cltMaps.get(clt);
 			}
 			lines.add(line);
+			
+			line = bug.id + "";
+			for (String buggyFile : bug.buggyFiles) {
+				int index = getFileIndex(buggyFile);
+				line += "\t" + index;
+			}
+			bugSourceLink.add(line);
 		}
 		String filename = main.Main.settings.get("workingLoc") + File.separator + "bugCLTIndex.txt";
 		WriteLinesToFile.writeLinesToFile(lines, filename);
+		filename = main.Main.settings.get("workingLoc") + File.separator + "bugSourceIndex.txt";
+		WriteLinesToFile.writeLinesToFile(bugSourceLink, filename);
 	}
 	
 	public static void processHunks() throws Exception {
@@ -238,9 +266,46 @@ public class CorpusCreation {
 		else return true;
 	}
 	
+	public static void processSourceFiles() {
+		List<String> lines;
+		String filename = main.Main.settings.get("workingLoc") + File.separator + "sourceFileIndex.txt";
+		sourceFileIndex = new HashMap<String,Integer>();
+		lines = FileListUnderDirectory.getFileListUnder(main.Main.settings.get("repoLoc"), ".java");
+		int count = 0;
+		List<String> classList = new ArrayList<String>();
+		HashSet<String> allCodeTermsHashSet = new HashSet<String>();
+		for (int i = 0; i < lines.size(); i++) {
+			if (lines.get(i).toLowerCase().contains("test")) continue;
+			String className = lines.get(i).replace("/", ".");
+			className = className.replace("\\", ".");
+			String prefix = main.Main.settings.get("repoLoc").replace("/", ".");
+			prefix = prefix.replace("\\", ".");
+			int index = className.indexOf(prefix);
+			className = className.substring(index + prefix.length() + 1);
+			classList.add(className);
+			sourceFileIndex.put(className, count++);
+			HashSet<String> codeElements = ExtractCodeElementsFromSourceFile.extractCodeElements(lines.get(i));
+			allCodeTermsHashSet.addAll(codeElements);
+		}
+		WriteLinesToFile.writeLinesToFile(classList, filename);
+		HashMap<String, Integer> cltMap = new HashMap<String, Integer>();
+		for (String item : allCodeTermsHashSet) {
+			cltMap.put(item, cltMap.size());
+		}
+		
+		for (String key : cltMap.keySet())
+			lines.add(key + "\t" + cltMap.get(key));
+		WriteLinesToFile.writeLinesToFile(lines, main.Main.settings.get("workingLoc") + File.separator + "codeLikeTerms.txt");
+	}
+	
 	public static void createCorpus() throws Exception {
 		loadCommits();
-        processBugReports();
+		
+		System.out.println("Indexing source files....");
+        processSourceFiles();
+        System.out.println("Indexing bug reports....");
+		processBugReports();
+		System.out.println("Indexing hunks...");
 		processHunks();
 	}
 }

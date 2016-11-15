@@ -43,13 +43,13 @@ public class EvaluationMetric {
 	
 	public static double AP(List<Integer> rank) {
 
-			double tmp = 0.0;
-			if (rank.size() == 0) return tmp;
-			for (int j = 0; j < rank.size(); j++) {
-				int r = j + 1;
-				tmp += r * 1.0 /(rank.get(j) + 1);
-			}
-			return tmp / rank.size();
+		double tmp = 0.0;
+		if (rank.size() == 0) return tmp;
+		for (int j = 0; j < rank.size(); j++) {
+			int r = j + 1;
+			tmp += r * 1.0 /(rank.get(j) + 1);
+		}
+		return tmp / rank.size();
 		
 	}
 

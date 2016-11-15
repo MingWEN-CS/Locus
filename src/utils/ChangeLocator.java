@@ -1,5 +1,9 @@
 package utils;
 
+import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -10,13 +14,24 @@ public class ChangeLocator {
 		if (shortChangeMap == null) {
 			shortChangeMap = readShortChangeMap();
 		} 
-		
 		return shortChangeMap;
+	}
+	
+	public static HashMap<String,Long> getChangeTime() throws ParseException {
+		HashMap<String,Long> changeTime = new HashMap<String,Long>();
+		List<String> lines = FileToLines.fileToLines(main.Main.settings.get("workingLoc") + File.separator + "logOneline.txt");
+		for (String line : lines) {
+			String[] split = line.split("\t");
+			
+			Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z").parse(split[4]);
+			changeTime.put(split[0].substring(0, 12), date.getTime());
+		}
+		return changeTime;
 	}
 	
 	public static HashMap<String,String> readShortChangeMap() {
 		HashMap<String,String> changeMap = new HashMap<String,String>();
-		List<String> lines = FileToLines.fileToLines("/home1/shared-resources/changelocator/subject/AnalyzeDataset/dataset/revision.log");
+		List<String> lines = FileToLines.fileToLines(main.Main.settings.get("workingLoc") + File.separator + "logOneline.txt");
 		for (String line : lines) {
 			String[] split = line.split("\t");
 			changeMap.put(split[0].substring(0, 12), split[0]);
