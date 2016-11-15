@@ -1,5 +1,17 @@
 package utils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import generics.Commit;
+
 public class GitHelp {
 	public static String getAllCommitOneLine(String repo) 
 		throws Exception{
@@ -78,4 +90,47 @@ public class GitHelp {
 		return result;
 	}
 	
+	public static List<Commit> readFromTextGIT(String filename) {
+		String hashId;
+		String authorName;
+		String authorEmail;
+		Date date;
+		String description;
+		String line;
+		List<Commit> commits = new ArrayList<Commit>();
+		try {
+			BufferedReader bw = new BufferedReader(new FileReader(new File(filename)));
+			line = bw.readLine();
+			while ( line != null) {
+				hashId = line.substring(7);
+				line = bw.readLine();
+				if (!line.startsWith("Author")) line = bw.readLine();	
+				int nameStart = line.indexOf(":") + 1;
+				int nameEnd = line.indexOf("<");
+				int emailEnd = line.indexOf(">");
+				authorName = line.substring(nameStart, nameEnd).trim();
+				authorEmail = line.substring(nameEnd + 1,emailEnd);
+				line = bw.readLine();
+				date = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z").parse(line.substring(line.indexOf(":") + 1).trim());
+				line = bw.readLine();
+				description = line;
+				while (line != null && !line.startsWith("commit")) {
+					description += "\n" + line;
+					line = bw.readLine();
+				}
+				description.trim();
+				Commit commit = new Commit(hashId,authorName,authorEmail,date,description);
+				commits.add(commit);
+			}
+//			System.out.println(commits.size());
+//			System.out.println(commits.get(0));
+			bw.close();
+		} catch (IOException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return commits;
+		
+	}
 }

@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import miningChanges.CorpusCreation;
-import miningChanges.ExtractCodeLikeTerms;
 import miningChanges.ProduceChangeLevelResults;
-import miningChanges.ObtainVSMScore;
+import miningChanges.ProduceFileLevelResults;
 import preprocess.ExtractCommits;
 import utils.FileToLines;
 
@@ -27,26 +26,21 @@ public class Main {
 		else if (task.equals("corpusCreation")) {
 			// Create the corpus change logs, hunks, and create the code like term corpus
 			CorpusCreation.createCorpus();
-		}
-		else if (task.equals("extractCodeLikeTerms"))
-			ExtractCodeLikeTerms.entry();
-		else if (task.equals("obtainSimilarity")) {
-			ObtainVSMScore os = new ObtainVSMScore();
-			os.obtainSimilarity();
-		} else if (task.equals("produceFinalResults")) {
+		} else if (task.equals("produceChangeResults")) {
 			ProduceChangeLevelResults rank = new ProduceChangeLevelResults();
+			rank.getFinalResults();
+		} else if (task.equals("produceFileResults")) {
+			ProduceFileLevelResults rank = new ProduceFileLevelResults();
 			rank.getFinalResults();
 		} else if (task.equals("all")) {
 			CorpusCreation.createCorpus();
 			System.out.println("Finish Creating Corpus");
-			ExtractCodeLikeTerms.entry();
-			System.out.println("Finish Extracting Code Like Terms");
-			ObtainVSMScore os = new ObtainVSMScore();
-			os.obtainSimilarity();
-			System.out.println("Finish Obtaing VSM Similarities");
-			ProduceChangeLevelResults rank = new ProduceChangeLevelResults();
-			rank.getFinalResults();
-			System.out.println("Get Final Results");
+			ProduceChangeLevelResults rank1 = new ProduceChangeLevelResults();
+			rank1.getFinalResults();
+			System.out.println("Finish Creating Change Level Results");
+			ProduceFileLevelResults rank2 = new ProduceFileLevelResults();
+			rank2.getFinalResults();
+			System.out.println("Finish Creating File Level Results");
 		}
 	}
 	

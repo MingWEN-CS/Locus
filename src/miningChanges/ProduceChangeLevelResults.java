@@ -19,10 +19,9 @@ import utils.WriteLinesToFile;
 public class ProduceChangeLevelResults {
 	public String loc = main.Main.settings.get("workingLoc");
 	private HashMap<Integer,HashSet<String>> inducingRevisions;
-	private HashMap<Integer,List<HashSet<String>>> potentialRevisions;
 	private HashMap<String,Long> revisionTime;
 	public List<Bug> bugs;
-	HashMap<Integer, HashMap<String,Double>> hunkResults;
+	public HashMap<Integer, HashMap<String,Double>> hunkResults;
 	
 	public boolean loadOracles() {
 		String filename = main.Main.changeOracle;
@@ -32,57 +31,25 @@ public class ProduceChangeLevelResults {
 			System.err.println("cound not find change level oracles");
 			return false;
 		}
-		
 		List<String> lines = FileToLines.fileToLines(filename);
 		int index = 0;
-		int depth = 3;
-		
 		bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
 		inducingRevisions = new HashMap<Integer,HashSet<String>>();
-		potentialRevisions = new HashMap<Integer,List<HashSet<String>>>();
 		while (index < lines.size()) {
 //			System.out.println(lines.get(index));
 			String[] splits = lines.get(index).split("\t");
-			int bucketId = Integer.parseInt(splits[0].trim());
-			String inducings = splits[1].substring(1, splits[1].length() - 1);
-			
-			splits = inducings.split(",");
-			inducingRevisions.put(bucketId, new HashSet<String>());
-			for (int i = 0; i < splits.length; i++)
-				inducingRevisions.get(bucketId).add(splits[i].trim());
-			index++;
-			index++;
-			
-			potentialRevisions.put(bucketId, new ArrayList<HashSet<String>>());
-			for (int i = 0; i <= depth; i++) {
-				index++;
-				potentialRevisions.get(bucketId).add(new HashSet<String>());
-				String line = lines.get(index);
-				line = line.substring(1, line.length() - 1);
-				splits = line.split(",");
-	//			System.out.println(bucketId + "\t" + splits.length);	
-				for (int j = 0; j < splits.length; j++)
-					potentialRevisions.get(bucketId).get(i).add(splits[j].trim());
-			}
-			index++;
+			int bid = Integer.parseInt(splits[0]);
+			HashSet<String> revisions = new HashSet<String>();
+			for (int i = 1; i < splits.length; i++)
+				revisions.add(splits[i]);
+			inducingRevisions.put(bid, revisions);
 		}
-		
 		return true;
 	}
 	
 	public void loadResults() {
-		String filename = loc + File.separator + "results.txt";
-		List<String> lines = FileToLines.fileToLines(filename);
-		hunkResults = new HashMap<Integer, HashMap<String,Double>>();
-		System.out.println(filename);
-		for (String line : lines) {
-			String[] split = line.split("\t");
-			int bid = Integer.parseInt(split[0]);
-			hunkResults.put(bid, new HashMap<String,Double>());
-			for (int i = 1; i < split.length; i++) {
-				hunkResults.get(bid).put(split[i].split(":")[0], Double.parseDouble(split[i].split(":")[1]));
-			}
-		}
+		ObtainVSMScore ovs = new ObtainVSMScore();
+		hunkResults = ovs.obtainSimilarity(true);
 	}
 	
 	public void loadRevisionTime() throws ParseException {
@@ -102,11 +69,10 @@ public class ProduceChangeLevelResults {
 		List<String> resultsLines = new ArrayList<String>();
 		for (Bug bug : bugs) {
 			int bid = bug.id;
-		
-			HashSet<String> potentialChanges = potentialRevisions.get(bid).get(0);
+			HashMap<String,Double> results = hunkResults.get(bid);
 			List<Pair<String, Long>> changeRanks = new ArrayList<Pair<String,Long>>();
-			for (String change : potentialChanges) {
-				if (revisionTime.containsKey(change))
+			for (String change : results.keySet()) {
+				if (revisionTime.containsKey(change) && revisionTime.get(change) < bug.reportTime)
 					changeRanks.add(new Pair<String,Long>(change, revisionTime.get(change)));
 				else changeRanks.add(new Pair<String, Long>(change, Long.MAX_VALUE));
 			}
@@ -117,7 +83,7 @@ public class ProduceChangeLevelResults {
 				timeScore.put(changeRanks.get(index).getKey(), 1.0 / (i + 1));
 			}
 				
-			HashMap<String,Double> results = hunkResults.get(bid);
+			
 			
 			for (String change : results.keySet()) {
 //				System.out.println(change + "\t" + revisionTime.get(change));
