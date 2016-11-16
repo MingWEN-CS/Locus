@@ -108,15 +108,26 @@ public class ObtainVSMScore {
 			index++;
 		}
 //		hunkIndex = FileToLines.fileToLines(hunkIndexName);
+		hunkSourceMap = new HashMap<>();
+		String filename = loc + File.separator + "sourceHunkLink.txt";
+		lines = FileToLines.fileToLines(filename);
+		for (String line : lines) {
+			String[] split = line.split("\t");
+			for (int i = 1; i < split.length; i++)
+				hunkSourceMap.put(Integer.parseInt(split[i]), split[0]);
+		}
+
 		for (int i = 0; i < hunkIndex.size(); i++) {
 			String line = hunkIndex.get(i);
 			List<String> terms = new ArrayList<String>();
-			String filename = loc + File.separator + "hunkLog" + File.separator + line;
+			filename = loc + File.separator + "hunkLog" + File.separator + line;
 			terms.addAll(FileToLines.fileToLines(filename));
 			filename = loc + File.separator + "hunkCode" + File.separator + line;
 			terms.addAll(FileToLines.fileToLines(filename));
 			hunkTermList.add(terms);
 		}
+
+
 
 	}
 	

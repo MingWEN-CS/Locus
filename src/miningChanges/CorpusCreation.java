@@ -8,9 +8,9 @@ import utils.ExtractCodeElementsFromSourceFile;
 import utils.FileListUnderDirectory;
 import utils.FileToLines;
 import utils.GitHelp;
-import utils.HgHelp;
 import utils.ReadBugsFromXML;
 import generics.Bug;
+import generics.Pair;
 import generics.Commit;
 import generics.Hunk;
 import utils.Splitter;
@@ -19,9 +19,7 @@ import utils.Stopword;
 import utils.WriteLinesToFile;
 
 public class CorpusCreation {
-	
-	public static List<Bug> bugs;
-	public static HashSet<String> validCommits;
+
 	public static String loc = main.Main.settings.get("workingLoc");
 	public static String repo = main.Main.settings.get("repoDir");
 	public static HashSet<String> concernedCommits;
@@ -67,20 +65,29 @@ public class CorpusCreation {
 	}
 	
 	private static int getFileIndex(String filename) {
-		HashMap<String, Integer> candidateFileSet = new HashMap<String,Integer>();
-		for (String source : sourceFileIndex.keySet()) {
-			if (source.endsWith(filename) || filename.endsWith(source))
-				candidateFileSet.put(source, sourceFileIndex.get(source));
+		List<Pair<Integer,Double>> candidateFileSet = new ArrayList<Pair<Integer,Double>>();
+		String[] splits = filename.split("\\.");
+        String className = splits[splits.length - 2] + "." + splits[splits.length - 1];
+        HashSet<String> fileTokens = new HashSet<>();
+        for (String split : splits)
+            fileTokens.add(split);
+        for (String source : sourceFileIndex.keySet()) {
+            if (!source.endsWith(className))
+                continue;
+            splits = source.split("\\.");
+            HashSet<String> sourceTokens = new HashSet<>();
+            for (String split : splits)
+                sourceTokens.add(split);
+            HashSet<String> tokens = new HashSet<>(fileTokens);
+            tokens.retainAll(sourceTokens);
+            HashSet<String> allTokens = new HashSet<>(fileTokens);
+            allTokens.addAll(sourceTokens);
+            candidateFileSet.add(new Pair<>(sourceFileIndex.get(source), tokens.size() * 1.0 / allTokens.size()));
 		}
+		Collections.sort(candidateFileSet);
 		int index = -1;
-		int length = Integer.MAX_VALUE;
-		for (String candidateString : candidateFileSet.keySet()) {
-			if (candidateString.length() < length) {
-				length = candidateString.length();
-				index = candidateFileSet.get(candidateString);
-			}
-		}
-		
+		if (candidateFileSet.size() > 0)
+		    index = candidateFileSet.get(candidateFileSet.size() - 1).getKey();
 		return index;
 	}
 
@@ -112,7 +119,8 @@ public class CorpusCreation {
 			line = bug.id + "";
 			for (String buggyFile : bug.buggyFiles) {
 				int index = getFileIndex(buggyFile);
-				line += "\t" + index;
+				if (index == -1) continue;
+                line += "\t" + index;
 			}
 			bugSourceLink.add(line);
 		}
@@ -209,7 +217,8 @@ public class CorpusCreation {
 				WriteLinesToFile.writeLinesToFile(words, loc + File.separator + "hunkCode" + File.separator + savePath);				
 				int index = hunkIndex.size();
 				int sourceIndex = getFileIndex(sourceFile);
-				if (!sourceHunkLinks.containsKey(sourceIndex)) {
+				if (sourceIndex == -1) continue;
+                if (!sourceHunkLinks.containsKey(sourceIndex)) {
 					sourceHunkLinks.put(sourceIndex, new HashSet<Integer>());
 				}
 				sourceHunkLinks.get(sourceIndex).add(index);

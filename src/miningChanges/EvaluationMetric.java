@@ -6,12 +6,15 @@ import java.util.List;
 public class EvaluationMetric {
 	public static double MRR(List<List<Integer>> ranks) {
 		double ans = 0;
+		int size = 0;
 		for (int i = 0; i < ranks.size(); i++) {
 			List<Integer> rank = ranks.get(i);
 //			System.out.println(rank.get(0) + 1);
 			ans += RR(rank);
+			if (ranks.get(i).size() > 0)
+				size++;
 		}
-		return ans / ranks.size();
+		return ans / size;
 	}
 	
 	public static double RR(List<Integer> rank) {
@@ -32,13 +35,15 @@ public class EvaluationMetric {
 	
 	public static double MAP(List<List<Integer>> ranks) {
 		double ans = 0;
-//		System.out.println(ranks.size());
+		int size = 0;
 		for (int i = 0; i < ranks.size(); i++) {
 			
 			ans += AP(ranks.get(i));
 //			System.out.println(AP(ranks.get(i)));
+			if (ranks.get(i).size() > 0)
+				size++;
 		}
-		return ans / ranks.size();
+		return ans / size;
 	}
 	
 	public static double AP(List<Integer> rank) {
@@ -56,8 +61,10 @@ public class EvaluationMetric {
 	public static double[] topN(List<List<Integer>> ranks, int N) {
 		int[] rank = new int[N];
 		double[] results = new double[N];
+		int size = 0;
 		for (int i = 0; i < ranks.size(); i++) {
 			if (ranks.get(i).size() > 0) {
+				size++;
 				int tmp = ranks.get(i).get(0);
 				if (tmp < N) {
 					rank[tmp] ++;
@@ -66,7 +73,7 @@ public class EvaluationMetric {
 		}
 		int tot = 0;
 		for (int i = 0; i < N; i++) {
-			results[i] = (rank[i] + tot) * 1.0 / ranks.size();
+			results[i] = (rank[i] + tot) * 1.0 / size;
 			tot += rank[i];
 		}
 		return results;

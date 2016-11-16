@@ -35,7 +35,7 @@ public class ProduceFileLevelResults {
 		
 		File file = new File(filename);
 		if (!file.exists()) {
-			System.err.println("cound not find change level oracles");
+			System.err.println("could not find change level oracles");
 			return false;
 		}
 		List<String> lines = FileToLines.fileToLines(filename);
@@ -50,6 +50,7 @@ public class ProduceFileLevelResults {
 			for (int i = 1; i < splits.length; i++)
 				revisions.add(Integer.parseInt(splits[i]));
 			bugRelatedFiles.put(bid, revisions);
+			index++;
 		}
 		
 		SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z");
@@ -96,10 +97,10 @@ public class ProduceFileLevelResults {
 				if (description.contains("bug") || description.contains("patch") || 
 						description.contains("fix") || description.contains("issue")) {
 //				if (description.contains("fix") || description.contains("bug")) {
-					isCommitFix.put(hash, true);
+					isCommitFix.put(hash.substring(0, 7), true);
 					lines.add(hash + "\t1");
 				} else {
-					isCommitFix.put(hash, false);
+					isCommitFix.put(hash.substring(0, 7), false);
 					lines.add(hash + "\t0");
 				}
 			}
@@ -108,13 +109,14 @@ public class ProduceFileLevelResults {
 			lines = FileToLines.fileToLines(commitFix);
 			for (String line : lines) {
 				String[] split = line.split("\t");
-				isCommitFix.put(split[0], split[1].equals("1"));
+				isCommitFix.put(split[0].substring(0,7), split[1].equals("1"));
 			}
 		}	
 		
 		String filename = loc + File.separator + "hunkIndex.txt";
 		hunkIndex = FileToLines.fileToLines(filename);
-		
+
+
 		filename = loc + File.separator + "sourceHunkLink.txt";
 		lines = FileToLines.fileToLines(filename);
 		
@@ -140,6 +142,8 @@ public class ProduceFileLevelResults {
 				double score = 0;
 				for (String commit : commits) {
 					if (time > commitTime.get(commit)) {
+						if (!isCommitFix.containsKey(commit))
+							continue;
 						if (isCommitFix.get(commit)) {
 							double norm = (commitTime.get(commit) - startTime) * 1.0 / (time - startTime);
 							double sus = 1.0 / (1 + Math.exp(-12 * norm + 12)); 
@@ -164,7 +168,7 @@ public class ProduceFileLevelResults {
 				
 				int sid = Integer.parseInt(change);
 				if (bugFixSuspicious.get(bug.id).containsKey(sid))
-					finalResults.put(sid, results.get(change) + 0.1 * bugFixSuspicious.get(bug.id).get(sid));
+					finalResults.put(sid, results.get(change) + 0.05 * bugFixSuspicious.get(bug.id).get(sid));
 				else finalResults.put(sid, results.get(change));
 			}
 			
@@ -204,7 +208,9 @@ public class ProduceFileLevelResults {
 
 	public void getFinalResults() throws Exception {
 		if (loadOracles()) {
+			System.out.println("Finish loading files");
 			loadResults();
+			System.out.println("Finish calculating suspicious score");
 			loadFileSuspiciousScore();
 			integrateResults();
 		}
