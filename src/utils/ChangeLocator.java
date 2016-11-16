@@ -23,8 +23,8 @@ public class ChangeLocator {
 		for (String line : lines) {
 			String[] split = line.split("\t");
 			
-			Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z").parse(split[4]);
-			changeTime.put(split[0].substring(0, 12), date.getTime());
+			Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z").parse(split[2]);
+			changeTime.put(split[0], date.getTime());
 		}
 		return changeTime;
 	}
@@ -34,7 +34,7 @@ public class ChangeLocator {
 		List<String> lines = FileToLines.fileToLines(main.Main.settings.get("workingLoc") + File.separator + "logOneline.txt");
 		for (String line : lines) {
 			String[] split = line.split("\t");
-			changeMap.put(split[0].substring(0, 12), split[0]);
+			changeMap.put(split[0].substring(0, 7), split[0]);
 		}
 		return changeMap;
 	}

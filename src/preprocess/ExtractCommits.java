@@ -11,7 +11,6 @@ import java.util.List;
 import utils.ChangeLocator;
 import utils.FileToLines;
 import utils.GitHelp;
-import utils.HgHelp;
 import utils.ReadBugsFromXML;
 import utils.WriteLinesToFile;
 
@@ -33,7 +32,7 @@ public class ExtractCommits {
 		String logFile = loc + File.separator + "logOneline.txt";
 		File file = new File(logFile);
 		if (!file.exists()) {
-			String content = GitHelp.getAllCommitOneLine(logFile);
+			String content = GitHelp.getAllCommitOneLine(repo);
 			WriteLinesToFile.writeToFiles(content, logFile);
 		}
 	}
@@ -44,8 +43,6 @@ public class ExtractCommits {
 			commitFile = main.Main.settings.get("concernedCommit");
 		List<String> lines = null;
 		changeMap = ChangeLocator.getShortChangeMap();
-		long year = 30 * 24 * 60 * 60 * 100L;
-		System.out.println(year);
 		if (commitFile.equals("")) {
 			changeTime = ChangeLocator.getChangeTime();
 			List<Bug> bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
@@ -56,7 +53,7 @@ public class ExtractCommits {
 				for (Bug bug : bugs) {
 					if (!bugConcernedCommits.containsKey(bug.id))
 						bugConcernedCommits.put(bug.id, new HashSet<String>());
-					if (changeTime.get(change) < bug.reportTime && (bug.reportTime - changeTime.get(change)) < year)
+					if (changeTime.get(change) < bug.reportTime)
 						bugConcernedCommits.get(bug.id).add(change);
 				}
 			}
@@ -107,7 +104,7 @@ public class ExtractCommits {
 			String commitFile = revisionLoc + File.separator + fullHash + File.separator + fullHash + ".txt";
 			file = new File(commitFile);
 			if (!file.exists()) {
-				String content = HgHelp.getCommitByRevision(hash, repo);
+				String content = GitHelp.gitShow(hash, repo);
 				WriteLinesToFile.writeToFiles(content, commitFile);
 			}
 		}

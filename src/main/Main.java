@@ -22,8 +22,7 @@ public class Main {
 	public static void startTask() throws Exception {
 		if (task.equals("indexHunks")) {
 			ExtractCommits.indexHunks();
-		}
-		else if (task.equals("corpusCreation")) {
+		} else if (task.equals("corpusCreation")) {
 			// Create the corpus change logs, hunks, and create the code like term corpus
 			CorpusCreation.createCorpus();
 		} else if (task.equals("produceChangeResults")) {
@@ -59,7 +58,7 @@ public class Main {
 				}
 			}
 		}
-		
+
 		if (settings.containsKey("task"))
 			task = settings.get("task");
 		if (settings.containsKey("repoDir"))
@@ -68,8 +67,8 @@ public class Main {
 			workingLoc = settings.get("workingLoc");
 		if (settings.containsKey("bugReport"))
 			bugReport = settings.get("bugReport");
-		if (settings.containsKey("oracle"))
-			changeOracle = settings.get("oracle");
+		if (settings.containsKey("changeOracle"))
+			changeOracle = settings.get("changeOracle");
 		
 		if (task.equals("") || repoDir.equals("") || workingLoc.equals("") || bugReport.equals("") || changeOracle.equals("")) {
 			System.out.println("Missing Required Configuration");

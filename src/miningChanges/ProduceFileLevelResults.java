@@ -198,7 +198,7 @@ public class ProduceFileLevelResults {
 			resultsLines.add("top@" + (i + 1) + "\t" + topN[i]);
 		}
 		System.out.println();
-		String filename = main.Main.settings.get("workingLoc") + File.separator + "changeLevelResults.txt";
+		String filename = main.Main.settings.get("workingLoc") + File.separator + "fileLevelResults.txt";
 		WriteLinesToFile.writeLinesToFile(resultsLines, filename);
 	}
 

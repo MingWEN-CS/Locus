@@ -1,12 +1,7 @@
 package miningChanges;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-
-import org.apache.commons.math3.optim.nonlinear.scalar.LineSearch;
+import java.util.*;
 
 import utils.ChangeLocator;
 import utils.ExtractCodeElementsFromSourceFile;
@@ -53,7 +48,7 @@ public class CorpusCreation {
 		System.out.println(commitFile);
 		concernedCommits = new HashSet<String>();
 		for (String line : lines) {
-            System.out.println(line);
+ //         System.out.println(line);
 			concernedCommits.add(line.split("\t")[0].trim());
 		}
 		changeMap = ChangeLocator.getShortChangeMap();
@@ -88,7 +83,7 @@ public class CorpusCreation {
 		
 		return index;
 	}
-	
+
 	public static void processBugReports() {
 		String proDir = main.Main.settings.get("workingLoc");
 		List<Bug> bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
@@ -106,7 +101,8 @@ public class CorpusCreation {
 			WriteLinesToFile.writeLinesToFile(processedWords, fileName);
 			String content = bug.summary + " " + bug.description;
 			List<String> clts = eclt.extractCLTFromNaturalLanguage(content);
-			String line = "" + bug.id;
+//			System.out.println(bug.id + "\t" + clts.toString());
+            String line = "" + bug.id;
 			for (String clt : clts) {
 				if (cltMaps.containsKey(clt))
 				    line += "\t" + cltMaps.get(clt);
@@ -127,11 +123,17 @@ public class CorpusCreation {
 	}
 	
 	public static void processHunks() throws Exception {
-		System.out.println("Extracting Hunks");
+        String saveFile = loc + File.separator + "hunkIndex.txt";
+        File file = new File(saveFile);
+        if (file.exists()) {
+            System.out.println("Hunks have already been extracted");
+            return;
+        }
+        System.out.println("Extracting Hunks");
 		String revisionLoc = loc + File.separator + "revisions";
 		if (main.Main.settings.containsKey("revisionsLoc"))
 			revisionLoc = main.Main.settings.get("revisionsLoc");
-		File file = new File(revisionLoc);
+		file = new File(revisionLoc);
 		if (!file.exists())
 			file.mkdir();
 		
@@ -160,9 +162,9 @@ public class CorpusCreation {
 				file.mkdir();
 			String commitFile = revisionLoc + File.separator + fullHash + File.separator + fullHash + ".txt";
 			file = new File(commitFile);
-			if (!file.exists()) {
-				String content = HgHelp.getCommitByRevision(hash, repo);
-				WriteLinesToFile.writeToFiles(content, commitFile);
+			if (!file.exists() || file.length() == 0) {
+                String content = GitHelp.gitShow(hash, repo);
+                WriteLinesToFile.writeToFiles(content, commitFile);
 			}
 			
 			Commit commit = utils.ReadHunksFromLog.readOneCommitWithHunkGit(commitFile);
@@ -256,7 +258,7 @@ public class CorpusCreation {
 				hunkCLTIndex.add(line);
 			}
 		}
-		String saveFile = loc + File.separator + "hunkIndex.txt";
+
 		WriteLinesToFile.writeLinesToFile(hunkIndex, saveFile);
 		String filename = loc + File.separator + "commitCLTIndex.txt";
 		WriteLinesToFile.writeLinesToFile(hashCLTIndex, filename);
@@ -284,10 +286,23 @@ public class CorpusCreation {
 	}
 	
 	public static void processSourceFiles() {
-		List<String> lines;
+		String codeLikeTermFile = main.Main.settings.get("workingLoc") + File.separator + "codeLikeTerms.txt";
+        File file = new File(codeLikeTermFile);
+        if (file.exists()) {
+            System.out.print("code like ter file already existed!");
+            sourceFileIndex = new HashMap<>();
+            String filename = main.Main.settings.get("workingLoc") + File.separator + "sourceFileIndex.txt";
+            List<String> lines = FileToLines.fileToLines(filename);
+            int count = 0;
+            for (String line : lines) {
+                sourceFileIndex.put(line, count++);
+            }
+            return;
+        }
+        List<String> lines;
 		String filename = main.Main.settings.get("workingLoc") + File.separator + "sourceFileIndex.txt";
 		sourceFileIndex = new HashMap<String,Integer>();
-		lines = FileListUnderDirectory.getFileListUnder(main.Main.settings.get("repoLoc"), ".java");
+		lines = FileListUnderDirectory.getFileListUnder(main.Main.settings.get("repoDir"), ".java");
 		int count = 0;
 		List<String> classList = new ArrayList<String>();
 		HashSet<String> allCodeTermsHashSet = new HashSet<String>();
@@ -295,7 +310,7 @@ public class CorpusCreation {
 			if (lines.get(i).toLowerCase().contains("test")) continue;
 			String className = lines.get(i).replace("/", ".");
 			className = className.replace("\\", ".");
-			String prefix = main.Main.settings.get("repoLoc").replace("/", ".");
+			String prefix = main.Main.settings.get("repoDir").replace("/", ".");
 			prefix = prefix.replace("\\", ".");
 			int index = className.indexOf(prefix);
 			className = className.substring(index + prefix.length() + 1);
@@ -307,9 +322,10 @@ public class CorpusCreation {
 		WriteLinesToFile.writeLinesToFile(classList, filename);
 		HashMap<String, Integer> cltMap = new HashMap<String, Integer>();
 		for (String item : allCodeTermsHashSet) {
-			cltMap.put(item, cltMap.size());
+            if (!cltMap.containsKey(item.toLowerCase()))
+                cltMap.put(item.toLowerCase(), cltMap.size());
 		}
-		
+		lines.clear();
 		for (String key : cltMap.keySet())
 			lines.add(key + "\t" + cltMap.get(key));
 		WriteLinesToFile.writeLinesToFile(lines, main.Main.settings.get("workingLoc") + File.separator + "codeLikeTerms.txt");
@@ -317,7 +333,6 @@ public class CorpusCreation {
 	
 	public static void createCorpus() throws Exception {
 		loadCommits();
-		
 		System.out.println("Indexing source files....");
         processSourceFiles();
         System.out.println("Indexing bug reports....");

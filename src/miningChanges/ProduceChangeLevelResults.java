@@ -25,10 +25,10 @@ public class ProduceChangeLevelResults {
 	
 	public boolean loadOracles() {
 		String filename = main.Main.changeOracle;
-		
+//		System.out.println(filename);
 		File file = new File(filename);
 		if (!file.exists()) {
-			System.err.println("cound not find change level oracles");
+			System.err.println("could not find change level oracles");
 			return false;
 		}
 		List<String> lines = FileToLines.fileToLines(filename);
@@ -43,6 +43,7 @@ public class ProduceChangeLevelResults {
 			for (int i = 1; i < splits.length; i++)
 				revisions.add(splits[i]);
 			inducingRevisions.put(bid, revisions);
+			index++;
 		}
 		return true;
 	}
@@ -59,8 +60,8 @@ public class ProduceChangeLevelResults {
 //			System.out.println(line);
 			String[] splits = line.split("\t");
 			String revisionNO = splits[0];
-			Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z").parse(splits[4]);
-			revisionTime.put(revisionNO.substring(0,12), date.getTime());
+			Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z").parse(splits[2]);
+			revisionTime.put(revisionNO.substring(0,7), date.getTime());
 		}
 	}
 	
@@ -130,8 +131,11 @@ public class ProduceChangeLevelResults {
 	
 	public void getFinalResults() throws ParseException {
 		if (loadOracles()) {
+			System.out.println("Calculating similarities...");
 			loadResults();
+			System.out.println("Finish calculating similarities");
 			loadRevisionTime();
+			System.out.println("Integrating final results...");
 			integrateResults();
 		}
 	}

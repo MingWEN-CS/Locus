@@ -35,13 +35,13 @@ public class ReadHunksFromLog {
 		try {
 			boolean isContent = false;
 			line = rawCommit.get(index++);
-			while (!line.startsWith("changeset"))
+			while (!line.startsWith("commit"))
 				line = rawCommit.get(index++);
 			String[] split = line.split(":");
 			changeSet = split[split.length - 1].trim();
 			
 			line = rawCommit.get(index++);
-			while (!line.startsWith("user")) 
+			while (!line.startsWith("Author"))
 				line = rawCommit.get(index++);
 			
 		
@@ -58,7 +58,7 @@ public class ReadHunksFromLog {
 			
 			line = rawCommit.get(index++);
 			
-			while (!line.startsWith("date")) 
+			while (!line.startsWith("Date"))
 				line = rawCommit.get(index++);
 			
 			date = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z").parse(line.substring(line.indexOf(":") + 1).trim());

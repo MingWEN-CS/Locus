@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import main.Main;
 import utils.ReadBugsFromXML;
 import utils.WriteLinesToFile;
 import generics.Bug;
@@ -24,8 +25,7 @@ public class ObtainVSMScore {
 	public HashMap<String,Integer> cltIndex;
 	public HashMap<Integer, String> hunkChangeMap;
 	public HashMap<Integer, String> hunkSourceMap;
-	private static HashMap<Integer,HashSet<String>> inducingRevisions;
-	private static HashMap<Integer,List<HashSet<String>>> potentialRevisions;
+	private static HashMap<Integer,HashSet<String>> potentialChanges;
 	
 	public void loadCLTIndex() {
 		logCLTs = new HashMap<String,List<Integer>>();
@@ -68,59 +68,7 @@ public class ObtainVSMScore {
 				bugCLTIndex.get(bid).add(Integer.parseInt(tmp[i]));
 		}
 	}
-	
-	public void loadOracles() {
-		String filename = main.Main.changeOracle;
-		List<String> lines = FileToLines.fileToLines(filename);
-		int index = 0;
-		int depth = 3;
-		
-		inducingRevisions = new HashMap<Integer,HashSet<String>>();
-		potentialRevisions = new HashMap<Integer,List<HashSet<String>>>();
-		while (index < lines.size()) {
-//			System.out.println(lines.get(index));
-			String[] splits = lines.get(index).split("\t");
-			int bucketId = Integer.parseInt(splits[0].trim());
-			String inducings = splits[1].substring(1, splits[1].length() - 1);
-			
-			splits = inducings.split(",");
-			inducingRevisions.put(bucketId, new HashSet<String>());
-			for (int i = 0; i < splits.length; i++)
-				inducingRevisions.get(bucketId).add(splits[i].trim());
-			index++;
-			index++;
-			
-			potentialRevisions.put(bucketId, new ArrayList<HashSet<String>>());
-			for (int i = 0; i <= depth; i++) {
-				index++;
-				potentialRevisions.get(bucketId).add(new HashSet<String>());
-				String line = lines.get(index);
-				line = line.substring(1, line.length() - 1);
-				splits = line.split(",");
-	//			System.out.println(bucketId + "\t" + splits.length);	
-				for (int j = 0; j < splits.length; j++)
-					potentialRevisions.get(bucketId).get(i).add(splits[j].trim());
-			}
-			index++;
-		}
-		
-		hunkChangeMap = new HashMap<Integer,String>();
-		filename = loc + File.separator + "hunkIndex.txt";
-		lines = FileToLines.fileToLines(filename);
-		for (int i = 0; i < lines.size(); i++) {
-			String[] split = lines.get(i).split("@");
-			hunkChangeMap.put(i, split[0]);
-		}
-		
-		hunkSourceMap = new HashMap<Integer,String>();
-		filename = loc + File.separator + "sourceHunkLink.txt";
-		lines = FileToLines.fileToLines(filename);
-		for (int i = 0; i < lines.size(); i++) {
-			String[] split = lines.get(i).split("\t");
-			for (int j = 1; j < split.length; j++)
-				hunkSourceMap.put(Integer.parseInt(split[j]), split[0]);
-		}
-	}
+
 	
 	public void loadBugFiles() {
 		bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
@@ -132,6 +80,19 @@ public class ObtainVSMScore {
 			List<String> lines = FileToLines.fileToLines(bugDir + File.separator + bugId + ".txt");
 			bugTermList.put(bugId, lines);
 		}
+
+		String filename = loc + File.separator + "concernedCommits.txt";
+		List<String> lines = FileToLines.fileToLines(filename);
+		potentialChanges = new HashMap<>();
+		for (String line : lines) {
+			String[] splits = line.split("\t");
+			int bid = Integer.parseInt(splits[0]);
+			String[] changes = splits[1].substring(1, splits[1].length() - 1).split(",");
+			potentialChanges.put(bid, new HashSet<>());
+			for (String change : changes) {
+				potentialChanges.get(bid).add(change.trim());
+			}
+		}
 	}
 	
 	public void loadHunkFiles() {
@@ -139,8 +100,12 @@ public class ObtainVSMScore {
 		String hunkIndexName = loc + File.separator + "hunkIndex.txt";
 		List<String> lines = FileToLines.fileToLines(hunkIndexName);
 		hunkIndex = new ArrayList<String>();
+		int index = 0;
+		hunkChangeMap = new HashMap<>();
 		for (String line : lines) {
 			hunkIndex.add(line.split("\t")[0]);
+			hunkChangeMap.put(index, line.split("\t")[0].split("@")[0]);
+			index++;
 		}
 //		hunkIndex = FileToLines.fileToLines(hunkIndexName);
 		for (int i = 0; i < hunkIndex.size(); i++) {
@@ -152,8 +117,7 @@ public class ObtainVSMScore {
 			terms.addAll(FileToLines.fileToLines(filename));
 			hunkTermList.add(terms);
 		}
-		
-		
+
 	}
 	
 	public HashMap<Integer,Double> getVSMScoreNL(Bug bug, List<Integer> hunkId, boolean isChangeLevel) {
@@ -161,6 +125,7 @@ public class ObtainVSMScore {
 		HashSet<String> corpus = new HashSet<String>();
 		int bid = bug.id;
 		List<String> bugTerm = bugTermList.get(bid);
+
 		corpus.addAll(bugTerm);
 		HashSet<String> relatedEntities = new HashSet<String>();
 		for (int id : hunkId) {
@@ -171,7 +136,9 @@ public class ObtainVSMScore {
 			else 
 				relatedEntities.add(hunkSourceMap.get(id));
 		}
-		
+
+//		System.out.println(relatedEntities.toString());
+
 		HashMap<String,Integer> corpusInverseIndex = new HashMap<String,Integer>();
 		List<String> corpusIndex = new ArrayList<String>();
 		List<HashMap<Integer,Integer>> hunkTermCount = new  ArrayList<HashMap<Integer,Integer>>();
@@ -220,10 +187,10 @@ public class ObtainVSMScore {
 			
 			hunkTermFreq.add(tmp1);
 		}
-		System.out.println(termEntityCount.size());
+//		System.out.println(termEntityCount.size());
 		for (int index : termEntityCount.keySet()) {
 			termHunkFreq.put(index, Math.log(relatedEntities.size() * 1.0 / termEntityCount.get(index).size()));
-		    System.out.println(index + "\t" + termHunkFreq.get(index));
+//		    System.out.println(index + "\t" + termHunkFreq.get(index));
         }
 		
 		double bugNorm = 0;
@@ -313,7 +280,7 @@ public class ObtainVSMScore {
 				
 			}
 		}
-		
+//		System.out.println(relatedEntities.toString());
 //		int[] cltCount = new int[cltIndex.size()];
 		HashMap<Integer, HashSet<String>> termEntityCount = new HashMap<Integer,HashSet<String>>();
 		for (int hunk : hunkId) {
@@ -321,6 +288,7 @@ public class ObtainVSMScore {
 			for (int index : cltFreq.keySet()) {
 				if (!termEntityCount.containsKey(index))
 					termEntityCount.put(index, new HashSet<String>());
+
 				if (isChangeLevel)
 					termEntityCount.get(index).add(hunkChangeMap.get(hunk));
 				else 
@@ -329,9 +297,13 @@ public class ObtainVSMScore {
 		}
 		
 		double[] inverseFreq = new double[cltIndex.size()];
-		for (int i = 0; i < cltIndex.size(); i++)
-			inverseFreq[i] = (termEntityCount.get(i).size() == 0) ? 0 : Math.log(relatedEntities.size() * 1.0 / termEntityCount.get(i).size());
-		
+		for (int i = 0; i < cltIndex.size(); i++) {
+
+			if (termEntityCount.containsKey(i)) {
+				inverseFreq[i] = (termEntityCount.get(i).size() == 0) ? 0 : Math.log(relatedEntities.size() * 1.0 / termEntityCount.get(i).size());
+//				System.out.println("contains:" + i + "\t" + termEntityCount.get(i));
+			} else inverseFreq[i] = 0;
+		}
 		double bugNorm = 0;
 		for (int index : bugCLTFreq.keySet()) {
 			bugNorm += bugCLTFreq.get(index) * bugCLTFreq.get(index) * inverseFreq[index] * inverseFreq[index];
@@ -345,6 +317,8 @@ public class ObtainVSMScore {
 			HashSet<Integer> intersect = new HashSet<Integer>();
 			intersect.addAll(cltFreq.keySet());
 			intersect.retainAll(bugCLTFreq.keySet());
+//			System.out.println(cltFreq.toString());
+//			System.out.println(bugCLTFreq.toString());
 			double cosine = 0;
 			for (int index : intersect) {
 				cosine += bugCLTFreq.get(index) * cltFreq.get(index) * inverseFreq[index] * inverseFreq[index];
@@ -363,15 +337,16 @@ public class ObtainVSMScore {
 		List<String> linesCLT = new ArrayList<String>();
 		List<String> combineResults = new ArrayList<String>();
 		HashMap<Integer, HashMap<String, Double>> bugChangeResults = new HashMap<Integer, HashMap<String,Double>>();
-		String resultNLFile = loc + File.separator + "resultsNL_change" + ".txt";
-		String resultCLTFile = loc + File.separator + "resultsCLT_change" + ".txt";
-		String resultFile = loc + File.separator + "results_change" + ".txt";
+		String resultNLFile = loc + File.separator + "resultsNL_" + (isChangeLevel ? "change":"file") + ".txt";
+		String resultCLTFile = loc + File.separator + "resultsCLT_" + (isChangeLevel ? "change":"file") + ".txt";
+		String resultFile = loc + File.separator + "results_" + (isChangeLevel ? "change":"file") + ".txt";
 		for (Bug bug : bugs) {
 			int bid = bug.id;
-			System.out.println(bid);
+			System.out.println("processing bug:" + bid);
 			List<Integer> hunks = new ArrayList<Integer>();
 			for (int i = 0; i < hunkIndex.size(); i++) {
-				if (potentialRevisions.get(bid).get(0).contains(hunkChangeMap.get(i)))
+
+				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)))
 					hunks.add(i);
 			}
 			
