@@ -32,6 +32,8 @@ public class Main {
 			ProduceFileLevelResults rank = new ProduceFileLevelResults();
 			rank.getFinalResults();
 		} else if (task.equals("all")) {
+			ExtractCommits.indexHunks();
+			System.out.println("Finish Indexing Files");
 			CorpusCreation.createCorpus();
 			System.out.println("Finish Creating Corpus");
 			ProduceChangeLevelResults rank1 = new ProduceChangeLevelResults();
