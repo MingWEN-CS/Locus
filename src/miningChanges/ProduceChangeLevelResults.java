@@ -49,8 +49,24 @@ public class ProduceChangeLevelResults {
 	}
 	
 	public void loadResults() {
-		ObtainVSMScore ovs = new ObtainVSMScore();
-		hunkResults = ovs.obtainSimilarity(true);
+
+		String resultFile = loc + File.separator + "results_change" + ".txt";
+		File file = new File(resultFile);
+		if (!file.exists()) {
+			ObtainVSMScore ovs = new ObtainVSMScore();
+			hunkResults = ovs.obtainSimilarity(true);
+		} else {
+			System.out.println("Results of change level exists, read from results_change.txt");
+			hunkResults = new HashMap<>();
+			List<String> lines = FileToLines.fileToLines(resultFile);
+			for (String line : lines) {
+				String[] splits = line.split("\t");
+				int sid = Integer.parseInt(splits[0]);
+				hunkResults.put(sid, new HashMap<>());
+				for (int i = 1; i < splits.length; i++)
+					hunkResults.get(sid).put(splits[i].split(":")[0], Double.parseDouble(splits[i].split(":")[1]));
+			}
+		}
 	}
 	
 	public void loadRevisionTime() throws ParseException {

@@ -74,8 +74,23 @@ public class ProduceFileLevelResults {
 	}
 	
 	public void loadResults() {
-		ObtainVSMScore ovs = new ObtainVSMScore();
-		hunkResults = ovs.obtainSimilarity(false);
+		String resultFile = loc + File.separator + "results_file" + ".txt";
+		File file = new File(resultFile);
+		if (!file.exists()) {
+			ObtainVSMScore ovs = new ObtainVSMScore();
+			hunkResults = ovs.obtainSimilarity(false);
+		} else {
+			System.out.println("Results of file level exists, read from results_file.txt");
+			hunkResults = new HashMap<>();
+			List<String> lines = FileToLines.fileToLines(resultFile);
+			for (String line : lines) {
+				String[] splits = line.split("\t");
+				int sid = Integer.parseInt(splits[0]);
+				hunkResults.put(sid, new HashMap<>());
+				for (int i = 1; i < splits.length; i++)
+					hunkResults.get(sid).put(splits[i].split(":")[0], Double.parseDouble(splits[i].split(":")[1]));
+			}
+		}
 		
 	}
 	
@@ -147,7 +162,7 @@ public class ProduceFileLevelResults {
 						if (isCommitFix.get(commit)) {
 							double norm = (commitTime.get(commit) - startTime) * 1.0 / (time - startTime);
 							double sus = 1.0 / (1 + Math.exp(-12 * norm + 12)); 
-							System.out.println(sid + "\t" + norm + "\t" + sus);
+//							System.out.println(sid + "\t" + norm + "\t" + sus);
 							score += sus;
 						}
 					}
