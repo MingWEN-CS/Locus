@@ -425,6 +425,7 @@ public class ObtainVSMScore {
 			System.out.println("processing bug:" + bid + "\t" + hunks.size());
 			List<Integer> NLHunksList = new ArrayList<Integer>(hunks);
 			List<Integer> CLTHunksList = new ArrayList<Integer>(hunks);
+			
 			updateCorpusNL(NLHunksList, isChangeLevel);
 			HashMap<Integer,Double> resultNL = getVSMScoreNL(bug,NLHunksList,isChangeLevel);
 			HashMap<Integer,Double> resultCLT = getVSMScoreCLT(bug,CLTHunksList,isChangeLevel);

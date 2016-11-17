@@ -50,7 +50,7 @@ public class CorpusCreation {
 			for (String commit : commits)
 			concernedCommits.add(commit.trim());
 		}
-		System.out.println(concernedCommits.toString());
+//		System.out.println(concernedCommits.toString());
 		changeMap = ChangeLocator.getShortChangeMap();
 	}
 	
@@ -210,13 +210,14 @@ public class CorpusCreation {
 
 				List<String> words = CorpusCreation.getProcessedWords(content);
 				WriteLinesToFile.writeLinesToFile(words, loc + File.separator + "hunkLog" + File.separator + savePath);
-				content = file + " ";
+				content = sourceFile + " ";
 				List<String> codes = hunk.codes;
 				for (String code : codes) {
 					content += code + " ";
 				}
 				words = CorpusCreation.getProcessedWords(content);
 				WriteLinesToFile.writeLinesToFile(words, loc + File.separator + "hunkCode" + File.separator + savePath);				
+				
 				int index = hunkIndex.size();
 				int sourceIndex = getFileIndex(sourceFile);
 				if (sourceIndex == -1) continue;
@@ -318,7 +319,6 @@ public class CorpusCreation {
 		List<String> classList = new ArrayList<String>();
 		HashSet<String> allCodeTermsHashSet = new HashSet<String>();
 		for (int i = 0; i < lines.size(); i++) {
-			if (lines.get(i).toLowerCase().contains("test")) continue;
 			String className = lines.get(i).replace("/", ".");
 			className = className.replace("\\", ".");
 			String prefix = main.Main.settings.get("repoDir").replace("/", ".");
