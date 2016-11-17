@@ -18,6 +18,9 @@ public class Main {
 	public static String workingLoc = "";
 	public static String bugReport = "";
 	public static String changeOracle = "";
+	public static double lambda = 5;
+	public static double belta1 = 0.1;
+	public static double belta2 = 0.2;
 	
 	public static void startTask() throws Exception {
 		if (task.equals("indexHunks")) {
@@ -71,7 +74,12 @@ public class Main {
 			bugReport = settings.get("bugReport");
 		if (settings.containsKey("changeOracle"))
 			changeOracle = settings.get("changeOracle");
-		
+		if (settings.containsKey("lambda"))
+			lambda = Double.parseDouble(settings.get("lambda"));
+		if (settings.containsKey("belta1"))
+			belta1 = Double.parseDouble(settings.get("belta1"));
+		if (settings.containsKey("belta2"))
+			belta2 = Double.parseDouble(settings.get("belta2"));
 		if (task.equals("") || repoDir.equals("") || workingLoc.equals("") || bugReport.equals("") || changeOracle.equals("")) {
 			System.out.println("Missing Required Configuration");
 			return;
