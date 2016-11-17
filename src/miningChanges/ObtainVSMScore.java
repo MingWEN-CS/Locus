@@ -157,6 +157,8 @@ public class ObtainVSMScore {
 			newHunkIndex.add(hid);
 		}
 		
+		System.out.println("new hunk size:\t" + newHunkIndex.size());
+		
 		for (String term : newTerms) {
 			corpusNL.add(term);
 			int index = corpusIndexNL.size();
@@ -180,7 +182,7 @@ public class ObtainVSMScore {
 			hunkTermFreqNL.put(hid, tmp1);
 		}
 		
-		// update the term frequency for all terms in the corpus
+		// update the reverse term frequency for all terms in the corpus
 		for (int hid : newHunkIndex) {
 			HashMap<Integer,Double> tmp = hunkTermFreqNL.get(hid);
 			for (int index : tmp.keySet()) {
@@ -190,7 +192,7 @@ public class ObtainVSMScore {
 				if (isChangeLevel)
 					termEntityCountNL.get(index).add(hunkChangeMap.get(hid));
 				else termEntityCountNL.get(index).add(hunkSourceMap.get(hid));
-				termHunkFreqNL.put(index, relatedEntities.size() * 1.0 / termEntityCountNL.get(index).size());
+				termHunkFreqNL.put(index, Math.log(relatedEntities.size() * 1.0 / termEntityCountNL.get(index).size()));
 			}
 		}
 	}
@@ -201,6 +203,15 @@ public class ObtainVSMScore {
 		List<String> bugTerm = bugTermList.get(bid);		
 		HashMap<Integer,Integer> bugTermCount = new HashMap<Integer,Integer>();
 		HashMap<Integer,Double> bugTermFreq = new HashMap<Integer,Double>();
+		
+		for (String term : bugTerm) {
+			if (corpusNL.contains(term)) continue;
+			corpusNL.add(term);
+			int index = corpusIndexNL.size();
+			corpusInverseIndexNL.put(term, index);
+			corpusIndexNL.add(term);
+		}
+		
 		for (String term : bugTerm) {
 			int index = corpusInverseIndexNL.get(term);
 			if (!bugTermCount.containsKey(index)) bugTermCount.put(index, 1);
@@ -218,7 +229,7 @@ public class ObtainVSMScore {
 		}
 		for (int index = 0; index < hunkId.size(); index++) {
 			int hid = hunkId.get(index);
-			HashMap<Integer,Double> termFreq = hunkTermFreqNL.get(index);
+			HashMap<Integer,Double> termFreq = hunkTermFreqNL.get(hid);
 			double hunkNorm = 0;
 			HashSet<Integer> intersect = new HashSet<Integer>();
 			for (int k : termFreq.keySet()) {
@@ -405,13 +416,13 @@ public class ObtainVSMScore {
 		for (int b = 0; b < bugRank.size(); b++) {
 			Bug bug = bugs.get(bugRank.get(b).getKey());
 			int bid = bug.id;
-			System.out.println("processing bug:" + bid);
+			
 			List<Integer> hunks = new ArrayList<Integer>();
 			for (int i = 0; i < hunkIndex.size(); i++) {
 				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)))
 					hunks.add(i);
 			}
-			
+			System.out.println("processing bug:" + bid + "\t" + hunks.size());
 			List<Integer> NLHunksList = new ArrayList<Integer>(hunks);
 			List<Integer> CLTHunksList = new ArrayList<Integer>(hunks);
 			updateCorpusNL(NLHunksList, isChangeLevel);
@@ -432,15 +443,26 @@ public class ObtainVSMScore {
 			if (bugCLTWeight > 1) bugCLTWeight = 1;
 			
 			HashMap<String,Double> entitySimisNL = getRankingResults(resultNL, isChangeLevel);
-			HashMap<String,Double> entitySimisCLT = getRankingResults(resultCLT, isChangeLevel);
-			
-			HashMap<String, Double> combine = combineResults(entitySimisNL, entitySimisCLT, bugCLTWeight);			
+			HashMap<String,Double> entitySimisCLT = getRankingResults(resultCLT, isChangeLevel);			
+			HashMap<String, Double> result = combineResults(entitySimisNL, entitySimisCLT, bugCLTWeight);			
+//			HashMap<String, Double> result = new HashMap<String, Double>();
+//			for (int hid : resultNL.keySet()) {
+//				double value = resultNL.get(hid) + bugCLTWeight * resultCLT.get(hid);
+//				String entity = "";
+//				if (isChangeLevel)
+//					entity = hunkChangeMap.get(hid);
+//				else entity = hunkSourceMap.get(hid);
+//				if (!result.containsKey(entity))
+//					result.put(entity, value);
+//				else if (result.get(entity) < value)
+//					result.put(entity, value);
+//			}
 			line = "" + bug.id;
-			for (String entity : combine.keySet()) {
-				line += "\t" + entity + ":" + combine.get(entity);
+			for (String entity : result.keySet()) {
+				line += "\t" + entity + ":" + result.get(entity);
 			}
 			combineResults.add(line);
-			bugChangeResults.put(bid, combine);
+			bugChangeResults.put(bid, result);
 			
 		}
 		WriteLinesToFile.writeLinesToFile(linesCLT, resultCLTFile);

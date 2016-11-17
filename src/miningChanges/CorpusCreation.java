@@ -39,16 +39,18 @@ public class CorpusCreation {
 		String commitFile = "";
 		if (main.Main.settings.containsKey("concernedCommit"))
 			commitFile = main.Main.settings.get("concernedCommit");
+		else commitFile = loc + File.separator + "concernedCommits.txt";
 		List<String> lines = null;
-		if (commitFile.equals("")) {
-			lines = FileToLines.fileToLines(loc + File.separator + "logOneline.txt");
-		} else lines = FileToLines.fileToLines(commitFile);
-		System.out.println(commitFile);
 		concernedCommits = new HashSet<String>();
+		lines = FileToLines.fileToLines(commitFile);
 		for (String line : lines) {
  //         System.out.println(line);
-			concernedCommits.add(line.split("\t")[0].trim());
+			String tmp = line.split("\t")[1];
+			String[] commits = tmp.substring(1, tmp.length() - 1).split(",");
+			for (String commit : commits)
+			concernedCommits.add(commit.trim());
 		}
+		System.out.println(concernedCommits.toString());
 		changeMap = ChangeLocator.getShortChangeMap();
 	}
 	
@@ -133,7 +135,7 @@ public class CorpusCreation {
 	public static void processHunks() throws Exception {
         String saveFile = loc + File.separator + "hunkIndex.txt";
         File file = new File(saveFile);
-        if (file.exists()) {
+        if (file.exists() && file.length() != 0) {
             System.out.println("Hunks have already been extracted");
             return;
         }

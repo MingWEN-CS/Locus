@@ -36,7 +36,7 @@ public class ProduceFileLevelResults {
 		
 		File file = new File(filename);
 		if (!file.exists()) {
-			System.err.println("could not find change level oracles");
+			System.err.println("could not find file level oracles");
 			return false;
 		}
 		List<String> lines = FileToLines.fileToLines(filename);
@@ -185,7 +185,7 @@ public class ProduceFileLevelResults {
 				
 				int sid = Integer.parseInt(change);
 				if (bugFixSuspicious.get(bug.id).containsKey(sid))
-					finalResults.put(sid, results.get(change) + belta1 * bugFixSuspicious.get(bug.id).get(sid));
+					finalResults.put(sid, results.get(change) + belta1 * bugFixSuspicious.get(bid).get(sid));
 				else finalResults.put(sid, results.get(change));
 			}
 			
