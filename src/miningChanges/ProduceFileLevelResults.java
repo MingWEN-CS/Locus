@@ -13,6 +13,7 @@ import java.util.List;
 import generics.Bug;
 import generics.Commit;
 import generics.Pair;
+import main.Main;
 import utils.FileToLines;
 import utils.GitHelp;
 import utils.ReadBugsFromXML;
@@ -175,6 +176,7 @@ public class ProduceFileLevelResults {
 	public void integrateResults() {
 		List<List<Integer>> ranks = new ArrayList<List<Integer>>();
 		List<String> resultsLines = new ArrayList<String>();
+		double belta1 = Main.belta1;
 		for (Bug bug : bugs) {
 			int bid = bug.id;
 			HashMap<String, Double> results = hunkResults.get(bid);			
@@ -183,7 +185,7 @@ public class ProduceFileLevelResults {
 				
 				int sid = Integer.parseInt(change);
 				if (bugFixSuspicious.get(bug.id).containsKey(sid))
-					finalResults.put(sid, results.get(change) + 0.05 * bugFixSuspicious.get(bug.id).get(sid));
+					finalResults.put(sid, results.get(change) + belta1 * bugFixSuspicious.get(bug.id).get(sid));
 				else finalResults.put(sid, results.get(change));
 			}
 			
@@ -201,7 +203,7 @@ public class ProduceFileLevelResults {
 					rank.add(i);
 			}
 			ranks.add(rank);
-//			System.out.println(potentialRevisions.get(bid).get(0).size() + "\t" + rank.toString() + "\t" + finalRanks.toString());
+			System.out.println(bid + "\t" + rank.toString());
 		}
 		
 		int N = 10;

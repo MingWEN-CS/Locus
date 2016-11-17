@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import generics.Bug;
 import generics.Pair;
+import main.Main;
 import utils.FileToLines;
 import utils.ReadBugsFromXML;
 import utils.WriteLinesToFile;
@@ -84,6 +85,7 @@ public class ProduceChangeLevelResults {
 	public void integrateResults() {
 		List<List<Integer>> ranks = new ArrayList<List<Integer>>();
 		List<String> resultsLines = new ArrayList<String>();
+		double belta2 = Main.belta2;
 		for (Bug bug : bugs) {
 			int bid = bug.id;
 			HashMap<String,Double> results = hunkResults.get(bid);
@@ -108,7 +110,7 @@ public class ProduceChangeLevelResults {
 					continue;
 				}
 				if (timeScore.containsKey(change))
-					results.put(change, results.get(change) + 0.1 * timeScore.get(change));
+					results.put(change, results.get(change) + belta2 * timeScore.get(change));
 			}
 			
 			List<Pair<String, Double>> finalRanks = new ArrayList<Pair<String,Double>>();
@@ -125,7 +127,7 @@ public class ProduceChangeLevelResults {
 					rank.add(i);
 			}
 			ranks.add(rank);
-//			System.out.println(potentialRevisions.get(bid).get(0).size() + "\t" + rank.toString() + "\t" + finalRanks.toString());
+			System.out.println(bid + "\t" + rank.toString());
 		}
 		
 		int N = 10;

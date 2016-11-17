@@ -351,6 +351,7 @@ public class ObtainVSMScore {
 		String resultNLFile = loc + File.separator + "resultsNL_" + (isChangeLevel ? "change":"file") + ".txt";
 		String resultCLTFile = loc + File.separator + "resultsCLT_" + (isChangeLevel ? "change":"file") + ".txt";
 		String resultFile = loc + File.separator + "results_" + (isChangeLevel ? "change":"file") + ".txt";
+		double lambda = Main.lambda;
 		for (Bug bug : bugs) {
 			int bid = bug.id;
 			System.out.println("processing bug:" + bid);
@@ -377,7 +378,7 @@ public class ObtainVSMScore {
 			}
 			linesCLT.add(line);
 			
-			double bugCLTWeight = 5 * bugCLTIndex.get(bid).size() * 1.0 / bugTermList.get(bid).size();
+			double bugCLTWeight = lambda * bugCLTIndex.get(bid).size() * 1.0 / bugTermList.get(bid).size();
 			if (bugCLTWeight > 1) bugCLTWeight = 1;
 			for (int hid : resultNL.keySet()) {
 				double value = resultNL.get(hid) + bugCLTWeight * resultCLT.get(hid);
