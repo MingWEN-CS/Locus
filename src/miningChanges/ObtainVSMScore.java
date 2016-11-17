@@ -154,6 +154,7 @@ public class ObtainVSMScore {
 			else 
 				relatedEntities.add(hunkSourceMap.get(hid));
 			processedHunksNL.add(hid);
+			newHunkIndex.add(hid);
 		}
 		
 		for (String term : newTerms) {
