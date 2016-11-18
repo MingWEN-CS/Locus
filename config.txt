@@ -4,16 +4,19 @@
 #produceChangeResults: produce the results at the change level, the results will be put into file "changeLevelResults.txt"
 #produceFileResults: produce the results at the file level, the results will be put into file "fileLevelResults"
 #all: conduct all the previous step
-task=produceFileResults
+task=all
 
 #[REQUIRED]the repository of the project
-repoDir=C:/Users/mwena/Documents/Java/ZXing/zxing
+repoDir=D:/Java/Datasets_MiningChanges/ZXing/zxing
+
+#[REQUIRED]the target version of the source file
+sourceDir=D:/Java/ZXing/ZXing-1.6/
 
 #[REQUIRED]the working loc of current run, which stores all the intermediate results
-workingLoc=C:/Users/mwena/Documents/Java/ZXing/
+workingLoc=D:/Java/ZXing
 
 #[REQUIRED]specify the bug report file
-bugReport=C:/Users/mwena/Documents/Java/ZXing/bugRepository.xml
+bugReport=D:/Java/ZXing/bugRepository.xml
 
 #[REQUIRED for producing at the change level]the oracle at the change level
-changeOracle=C:/Users/mwena/Documents/Java/ZXing/changeOraclesFull.txt
+changeOracle=D:/Java/ZXing/changeOracles.txt
