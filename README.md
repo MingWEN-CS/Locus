@@ -10,12 +10,13 @@ The reauired configurations are as followings:
 1. `task`: the task you want to run `{indexHunks, corpusCreation, produceChangeResults, produceFileResults, all}`
 
     * indexHunks: extract the concerned changes
-    * corpusCreation: create the corpus for bug reports, change logs, and changes
-    * produceChangeResults: produce the results at the change level, the results will be put into file `changeLevelResults.txt`
-    * produceFileResults: produce the results at the file level, the results will be put into file `fileLevelResults.txt`
+    * corpusCreation: create the corpus for bug reports, change logs, and changes [must be executed after the first step]
+    * produceChangeResults: produce the results at the change level, the results will be put into file `changeLevelResults.txt` [must be executed after the first two steps]
+    * produceFileResults: produce the results at the file level, the results will be put into file `fileLevelResults.txt` [must be executed after the first two steps]
     * all: conduct all the previous step
 
 2. `repoDir`: which refers to the repository of your target project. [supports GIT right now]
-3. `workingLoc`: the working directory of the current run, which will store all the intermediate files and the final results
-4. `bugReport`: specify the bug report file
-5. `changeOracle`: **Optional**, which is only required when you need to produce the results at the change level
+3. `sourceDir`: which is the target version of the source files
+4. `workingLoc`: the working directory of the current run, which will store all the intermediate files and the final results
+5. `bugReport`: specify the bug report file
+6. `changeOracle`: **Optional**, which is only required when you need to produce the results at the change level
