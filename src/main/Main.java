@@ -18,6 +18,7 @@ public class Main {
 	public static String workingLoc = "";
 	public static String bugReport = "";
 	public static String changeOracle = "";
+	public static String sourceDir = "";
 	public static double lambda = 5;
 	public static double belta1 = 0.1;
 	public static double belta2 = 0.2;
@@ -80,6 +81,8 @@ public class Main {
 			belta1 = Double.parseDouble(settings.get("belta1"));
 		if (settings.containsKey("belta2"))
 			belta2 = Double.parseDouble(settings.get("belta2"));
+		if (settings.containsKey("sourceDir"))
+			sourceDir = settings.get("sourceDir");
 		if (task.equals("") || repoDir.equals("") || workingLoc.equals("") || bugReport.equals("") || changeOracle.equals("")) {
 			System.out.println("Missing Required Configuration");
 			return;

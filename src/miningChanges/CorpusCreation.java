@@ -39,16 +39,18 @@ public class CorpusCreation {
 		String commitFile = "";
 		if (main.Main.settings.containsKey("concernedCommit"))
 			commitFile = main.Main.settings.get("concernedCommit");
+		else commitFile = loc + File.separator + "concernedCommits.txt";
 		List<String> lines = null;
-		if (commitFile.equals("")) {
-			lines = FileToLines.fileToLines(loc + File.separator + "logOneline.txt");
-		} else lines = FileToLines.fileToLines(commitFile);
-		System.out.println(commitFile);
 		concernedCommits = new HashSet<String>();
+		lines = FileToLines.fileToLines(commitFile);
 		for (String line : lines) {
  //         System.out.println(line);
-			concernedCommits.add(line.split("\t")[0].trim());
+			String tmp = line.split("\t")[1];
+			String[] commits = tmp.substring(1, tmp.length() - 1).split(",");
+			for (String commit : commits)
+			concernedCommits.add(commit.trim());
 		}
+//		System.out.println(concernedCommits.toString());
 		changeMap = ChangeLocator.getShortChangeMap();
 	}
 	
@@ -133,7 +135,7 @@ public class CorpusCreation {
 	public static void processHunks() throws Exception {
         String saveFile = loc + File.separator + "hunkIndex.txt";
         File file = new File(saveFile);
-        if (file.exists()) {
+        if (file.exists() && file.length() != 0) {
             System.out.println("Hunks have already been extracted");
             return;
         }
@@ -208,13 +210,14 @@ public class CorpusCreation {
 
 				List<String> words = CorpusCreation.getProcessedWords(content);
 				WriteLinesToFile.writeLinesToFile(words, loc + File.separator + "hunkLog" + File.separator + savePath);
-				content = file + " ";
+				content = sourceFile + " ";
 				List<String> codes = hunk.codes;
 				for (String code : codes) {
 					content += code + " ";
 				}
 				words = CorpusCreation.getProcessedWords(content);
 				WriteLinesToFile.writeLinesToFile(words, loc + File.separator + "hunkCode" + File.separator + savePath);				
+				
 				int index = hunkIndex.size();
 				int sourceIndex = getFileIndex(sourceFile);
 				if (sourceIndex == -1) continue;
@@ -311,26 +314,43 @@ public class CorpusCreation {
         List<String> lines;
 		String filename = main.Main.settings.get("workingLoc") + File.separator + "sourceFileIndex.txt";
 		sourceFileIndex = new HashMap<String,Integer>();
-		lines = FileListUnderDirectory.getFileListUnder(main.Main.settings.get("repoDir"), ".java");
+		lines = FileListUnderDirectory.getFileListUnder(main.Main.sourceDir, ".java");
 		int count = 0;
 		List<String> classList = new ArrayList<String>();
 		HashSet<String> allCodeTermsHashSet = new HashSet<String>();
 		for (int i = 0; i < lines.size(); i++) {
-			if (lines.get(i).toLowerCase().contains("test")) continue;
 			String className = lines.get(i).replace("/", ".");
+//			System.out.println(className);
 			className = className.replace("\\", ".");
+			String[] clts = className.split("\\.");
+			if (!loc.toLowerCase().contains("zxing") && className.toLowerCase().contains("test")) continue;
 			String prefix = main.Main.settings.get("repoDir").replace("/", ".");
 			prefix = prefix.replace("\\", ".");
 			int index = className.indexOf(prefix);
 			className = className.substring(index + prefix.length() + 1);
 			classList.add(className);
 			sourceFileIndex.put(className, count++);
+			
+			for (String term : clts) {
+				if (!term.contains(".")) {
+					String tmp2 = term.toLowerCase();
+					allCodeTermsHashSet.add(tmp2);
+
+				}
+				else {
+					String tmp2 = term.substring(0,term.indexOf(".")).toLowerCase();
+					allCodeTermsHashSet.add(tmp2);
+				}
+			}
+			if (className.toLowerCase().contains("test")) continue;
 			HashSet<String> codeElements = ExtractCodeElementsFromSourceFile.extractCodeElements(lines.get(i));
 			allCodeTermsHashSet.addAll(codeElements);
 		}
 		WriteLinesToFile.writeLinesToFile(classList, filename);
 		HashMap<String, Integer> cltMap = new HashMap<String, Integer>();
 		for (String item : allCodeTermsHashSet) {
+			
+			if (!isValid(item.toLowerCase())) continue;
             if (!cltMap.containsKey(item.toLowerCase()))
                 cltMap.put(item.toLowerCase(), cltMap.size());
 		}
@@ -338,6 +358,13 @@ public class CorpusCreation {
 		for (String key : cltMap.keySet())
 			lines.add(key + "\t" + cltMap.get(key));
 		WriteLinesToFile.writeLinesToFile(lines, main.Main.settings.get("workingLoc") + File.separator + "codeLikeTerms.txt");
+	}
+	
+	private static boolean isValid(String term) {
+		boolean flag = true;
+		if (term.length() < 5 && !term.contains("_")) flag = false;
+		if (Stopword.isEnglishStopword(term) || Stopword.isKeyword(term)) flag = false;
+		return flag;
 	}
 	
 	public static void createCorpus() throws Exception {

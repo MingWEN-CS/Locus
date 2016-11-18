@@ -2,6 +2,7 @@ package miningChanges;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,6 +11,7 @@ import main.Main;
 import utils.ReadBugsFromXML;
 import utils.WriteLinesToFile;
 import generics.Bug;
+import generics.Pair;
 import utils.FileToLines;
 
 public class ObtainVSMScore {
@@ -126,46 +128,92 @@ public class ObtainVSMScore {
 			terms.addAll(FileToLines.fileToLines(filename));
 			hunkTermList.add(terms);
 		}
-
-
-
+	}
+	
+	public HashSet<String> corpusNL = new HashSet<String>();
+	public HashSet<String> relatedEntities = new HashSet<String>();
+	public HashMap<String,Integer> corpusInverseIndexNL = new HashMap<String,Integer>();
+	public List<String> corpusIndexNL = new ArrayList<String>();
+	public HashMap<Integer, HashMap<Integer,Double>> hunkTermFreqNL = new HashMap<Integer, HashMap<Integer,Double>>();	
+	public HashMap<Integer, Double> termHunkFreqNL = new HashMap<Integer,Double>();
+	public HashMap<Integer, HashSet<String>> termEntityCountNL = new HashMap<Integer,HashSet<String>>();
+	public HashSet<Integer> processedHunksNL = new HashSet<Integer>();
+	
+	public void updateCorpusNL(List<Integer> hunkIds, boolean isChangeLevel) {
+		HashSet<String> newTerms = new HashSet<String>();
+		HashSet<Integer> newHunkIndex = new HashSet<Integer>();
+		for (int hid : hunkIds) {
+			if (processedHunksNL.contains(hid)) continue;
+			List<String> hunkTerm = hunkTermList.get(hid);
+			for (String term : hunkTerm) {
+				if (!corpusNL.contains(term))
+					newTerms.add(term);
+			}
+			if (isChangeLevel)
+				relatedEntities.add(hunkChangeMap.get(hid));
+			else 
+				relatedEntities.add(hunkSourceMap.get(hid));
+			processedHunksNL.add(hid);
+			newHunkIndex.add(hid);
+		}
+		
+		System.out.println("new hunk size:\t" + newHunkIndex.size());
+		
+		for (String term : newTerms) {
+			corpusNL.add(term);
+			int index = corpusIndexNL.size();
+			corpusInverseIndexNL.put(term, index);
+			corpusIndexNL.add(term);
+		}
+		
+		// calculate term frequency for the new hunks
+		for (int hid : newHunkIndex) {
+			List<String> hunkTerms = hunkTermList.get(hid);
+			HashMap<Integer,Integer> tmp = new HashMap<Integer,Integer>();
+			for (String term : hunkTerms) {
+				int index = corpusInverseIndexNL.get(term);
+				if (!tmp.containsKey(index)) tmp.put(index, 1);
+				else tmp.put(index, tmp.get(index) + 1);
+			}
+			HashMap<Integer,Double> tmp1 = new HashMap<Integer,Double>();
+			for (int tid : tmp.keySet()) {
+				tmp1.put(tid,  Math.log(tmp.get(tid)) + 1);
+			}
+			hunkTermFreqNL.put(hid, tmp1);
+		}
+		
+		// update the reverse term frequency for all terms in the corpus
+		for (int hid : newHunkIndex) {
+			HashMap<Integer,Double> tmp = hunkTermFreqNL.get(hid);
+			for (int index : tmp.keySet()) {
+				if (!termEntityCountNL.containsKey(index))
+					termEntityCountNL.put(index, new HashSet<String>());
+				
+				if (isChangeLevel)
+					termEntityCountNL.get(index).add(hunkChangeMap.get(hid));
+				else termEntityCountNL.get(index).add(hunkSourceMap.get(hid));
+				termHunkFreqNL.put(index, Math.log(relatedEntities.size() * 1.0 / termEntityCountNL.get(index).size()));
+			}
+		}
 	}
 	
 	public HashMap<Integer,Double> getVSMScoreNL(Bug bug, List<Integer> hunkId, boolean isChangeLevel) {
 		HashMap<Integer,Double> results = new HashMap<Integer,Double>();
-		HashSet<String> corpus = new HashSet<String>();
 		int bid = bug.id;
-		List<String> bugTerm = bugTermList.get(bid);
-
-		corpus.addAll(bugTerm);
-		HashSet<String> relatedEntities = new HashSet<String>();
-		for (int id : hunkId) {
-			List<String> hunkTerm = hunkTermList.get(id);
-			corpus.addAll(hunkTerm);
-			if (isChangeLevel)
-				relatedEntities.add(hunkChangeMap.get(id));
-			else 
-				relatedEntities.add(hunkSourceMap.get(id));
-		}
-
-//		System.out.println(relatedEntities.toString());
-
-		HashMap<String,Integer> corpusInverseIndex = new HashMap<String,Integer>();
-		List<String> corpusIndex = new ArrayList<String>();
-		List<HashMap<Integer,Integer>> hunkTermCount = new  ArrayList<HashMap<Integer,Integer>>();
-		List<HashMap<Integer,Double>> hunkTermFreq = new ArrayList<HashMap<Integer,Double>>();
-		HashMap<Integer,Double> termHunkFreq = new HashMap<Integer,Double>();
-		HashMap<Integer, HashSet<String>> termEntityCount = new HashMap<Integer,HashSet<String>>();
-		
-		for (String term : corpus) {
-			corpusInverseIndex.put(term, corpusIndex.size());
-			corpusIndex.add(term);
-		}
-		
+		List<String> bugTerm = bugTermList.get(bid);		
 		HashMap<Integer,Integer> bugTermCount = new HashMap<Integer,Integer>();
 		HashMap<Integer,Double> bugTermFreq = new HashMap<Integer,Double>();
+		
 		for (String term : bugTerm) {
-			int index = corpusInverseIndex.get(term);
+			if (corpusNL.contains(term)) continue;
+			corpusNL.add(term);
+			int index = corpusIndexNL.size();
+			corpusInverseIndexNL.put(term, index);
+			corpusIndexNL.add(term);
+		}
+		
+		for (String term : bugTerm) {
+			int index = corpusInverseIndexNL.get(term);
 			if (!bugTermCount.containsKey(index)) bugTermCount.put(index, 1);
 			else bugTermCount.put(index, bugTermCount.get(index) + 1);
 		}
@@ -173,60 +221,28 @@ public class ObtainVSMScore {
 		for (int index : bugTermCount.keySet()) {
 			bugTermFreq.put(index, Math.log(bugTermCount.get(index)) + 1);
 		}
-	
-		for (int i = 0; i < hunkId.size(); i++) {
-			int hid = hunkId.get(i);
-			HashMap<Integer,Integer> tmp = new HashMap<Integer,Integer>();
-			List<String> hunkTerm = hunkTermList.get(hid);
-			for (String term : hunkTerm) {
-				int index = corpusInverseIndex.get(term);
-				if (!tmp.containsKey(index)) tmp.put(index, 1);
-				else tmp.put(index, tmp.get(index) + 1);	
-			}
-			hunkTermCount.add(tmp);
-			HashMap<Integer,Double> tmp1 = new HashMap<Integer,Double>();
-			for (int index : tmp.keySet()) {
-				tmp1.put(index, Math.log(tmp.get(index)) + 1);
-				
-				if (!termEntityCount.containsKey(index))
-					termEntityCount.put(index, new HashSet<String>());
-				if (isChangeLevel)
-					termEntityCount.get(index).add(hunkChangeMap.get(hid));
-				else 
-					termEntityCount.get(index).add(hunkSourceMap.get(hid));
-			}
-			
-			hunkTermFreq.add(tmp1);
-		}
-//		System.out.println(termEntityCount.size());
-		for (int index : termEntityCount.keySet()) {
-			termHunkFreq.put(index, Math.log(relatedEntities.size() * 1.0 / termEntityCount.get(index).size()));
-//		    System.out.println(index + "\t" + termHunkFreq.get(index));
-        }
 		
 		double bugNorm = 0;
 		for (int k : bugTermFreq.keySet()) {
-			if (termHunkFreq.containsKey(k))
-				bugNorm += bugTermFreq.get(k) * bugTermFreq.get(k) * termHunkFreq.get(k) * termHunkFreq.get(k);
+			if (termHunkFreqNL.containsKey(k))
+				bugNorm += bugTermFreq.get(k) * bugTermFreq.get(k) * termHunkFreqNL.get(k) * termHunkFreqNL.get(k);
 		}
 		for (int index = 0; index < hunkId.size(); index++) {
 			int hid = hunkId.get(index);
-			HashMap<Integer,Double> termFreq = hunkTermFreq.get(index);
+			HashMap<Integer,Double> termFreq = hunkTermFreqNL.get(hid);
 			double hunkNorm = 0;
 			HashSet<Integer> intersect = new HashSet<Integer>();
 			for (int k : termFreq.keySet()) {
-				hunkNorm += termFreq.get(k) * termFreq.get(k) * termHunkFreq.get(k) * termHunkFreq.get(k);
+				hunkNorm += termFreq.get(k) * termFreq.get(k) * termHunkFreqNL.get(k) * termHunkFreqNL.get(k);
 			}
 			intersect.addAll(termFreq.keySet());
 			intersect.retainAll(bugTermFreq.keySet());
 			double consine = 0;
 			for (int k : intersect) {
-				consine += bugTermFreq.get(k) * termFreq.get(k) * termHunkFreq.get(k) * termHunkFreq.get(k);
+				consine += bugTermFreq.get(k) * termFreq.get(k) * termHunkFreqNL.get(k) * termHunkFreqNL.get(k);
 				
 			}
-//            System.out.println(consine + "\t" + bugNorm + "\t" + hunkNorm);
 			double similarity = consine / (Math.sqrt(bugNorm) * Math.sqrt(hunkNorm));
-//			similarity *= hunkLength.get(index);
 			results.put(hid, similarity);
 		}
 		return results;
@@ -343,6 +359,44 @@ public class ObtainVSMScore {
 		return results;
 	}
 	
+	public HashMap<String,Double> getRankingResults(HashMap<Integer,Double> results, boolean isChangeLevel) {
+		HashMap<String,Double> sourceSimis = new HashMap<String,Double>();
+		for (int hunk : results.keySet()) {
+			String eid = "";
+			if (isChangeLevel)
+				eid = hunkChangeMap.get(hunk);
+			else eid = hunkSourceMap.get(hunk);
+			if (eid.equals("")) continue;
+//			if (!semanticHids.contains(hunk)) continue;
+			if (!sourceSimis.containsKey(eid)) {
+				sourceSimis.put(eid, results.get(hunk));
+			}
+			else if (sourceSimis.get(eid) < results.get(hunk)) {
+				sourceSimis.put(eid, results.get(hunk));
+			}
+		}
+		return sourceSimis;
+	}
+	
+	private HashMap<String,Double> combineResults(HashMap<String,Double> r1, HashMap<String,Double> r2, double ratio) {
+		HashMap<String,Double> r = new HashMap<String,Double>();
+		double a = 1.0;
+		HashSet<String> indexes = new HashSet<String>();
+		indexes.addAll(r1.keySet());
+		indexes.addAll(r2.keySet());
+		for (String index : indexes) {
+			double v1 = 0;
+			double v2 = 0;
+			if (!r1.containsKey(index) || Double.isNaN(r1.get(index))) v1 = 0;
+			else v1 = r1.get(index);
+			
+			if (!r2.containsKey(index) || Double.isNaN(r2.get(index))) v2 = 0;
+			else v2 = r2.get(index);
+			r.put(index, v1 * a + v2 * ratio);
+		}
+		return r;
+	}
+	
 	public HashMap<Integer, HashMap<String, Double>> getResults(boolean isChangeLevel) {
 		List<String> linesNL = new ArrayList<String>();
 		List<String> linesCLT = new ArrayList<String>();
@@ -352,49 +406,61 @@ public class ObtainVSMScore {
 		String resultCLTFile = loc + File.separator + "resultsCLT_" + (isChangeLevel ? "change":"file") + ".txt";
 		String resultFile = loc + File.separator + "results_" + (isChangeLevel ? "change":"file") + ".txt";
 		double lambda = Main.lambda;
-		for (Bug bug : bugs) {
+		
+		List<Pair<Integer, Long>> bugRank = new ArrayList<Pair<Integer, Long>>();
+		for (int i = 0; i < bugs.size(); i++)
+			bugRank.add(new Pair<Integer,Long>(i, bugs.get(i).reportTime));
+		
+		Collections.sort(bugRank);
+		
+		for (int b = 0; b < bugRank.size(); b++) {
+			Bug bug = bugs.get(bugRank.get(b).getKey());
 			int bid = bug.id;
-			System.out.println("processing bug:" + bid);
+			
 			List<Integer> hunks = new ArrayList<Integer>();
 			for (int i = 0; i < hunkIndex.size(); i++) {
-
 				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)))
 					hunks.add(i);
 			}
-			
+			System.out.println("processing bug:" + bid + "\t" + hunks.size());
 			List<Integer> NLHunksList = new ArrayList<Integer>(hunks);
 			List<Integer> CLTHunksList = new ArrayList<Integer>(hunks);
+			
+			updateCorpusNL(NLHunksList, isChangeLevel);
 			HashMap<Integer,Double> resultNL = getVSMScoreNL(bug,NLHunksList,isChangeLevel);
 			HashMap<Integer,Double> resultCLT = getVSMScoreCLT(bug,CLTHunksList,isChangeLevel);
-			HashMap<String, Double> result = new HashMap<String,Double>();
 			String line = "" + bug.id;
-			for (int sid : resultNL.keySet()) {
-				line += "\t" + sid + ":" + resultNL.get(sid);
+			for (int hid : resultNL.keySet()) {
+				line += "\t" + hid + ":" + resultNL.get(hid);
 			}
 			linesNL.add(line);
 			line = "" + bug.id;
-			for (int sid : resultCLT.keySet()) {
-				line += "\t" + sid + ":" + resultCLT.get(sid);
+			for (int hid : resultCLT.keySet()) {
+				line += "\t" + hid + ":" + resultCLT.get(hid);
 			}
 			linesCLT.add(line);
 			
 			double bugCLTWeight = lambda * bugCLTIndex.get(bid).size() * 1.0 / bugTermList.get(bid).size();
 			if (bugCLTWeight > 1) bugCLTWeight = 1;
-			for (int hid : resultNL.keySet()) {
-				double value = resultNL.get(hid) + bugCLTWeight * resultCLT.get(hid);
-				String entity = "";
-				if (isChangeLevel)
-					entity = hunkChangeMap.get(hid);
-				else entity = hunkSourceMap.get(hid);
-				if (!result.containsKey(entity))
-					result.put(entity, value);
-				else if (result.get(entity) < value)
-					result.put(entity, value);
-			}
 			
+			HashMap<String,Double> entitySimisNL = getRankingResults(resultNL, isChangeLevel);
+			HashMap<String,Double> entitySimisCLT = getRankingResults(resultCLT, isChangeLevel);			
+			HashMap<String, Double> result = combineResults(entitySimisNL, entitySimisCLT, bugCLTWeight);			
+//			HashMap<String, Double> result = new HashMap<String, Double>();
+//			for (int hid : resultNL.keySet()) {
+//				double value = resultNL.get(hid) + bugCLTWeight * resultCLT.get(hid);
+//				String entity = "";
+//				if (isChangeLevel)
+//					entity = hunkChangeMap.get(hid);
+//				else entity = hunkSourceMap.get(hid);
+//				if (!result.containsKey(entity))
+//					result.put(entity, value);
+//				else if (result.get(entity) < value)
+//					result.put(entity, value);
+//			}
 			line = "" + bug.id;
-			for (String change : result.keySet()) {
-				line += "\t" + change + ":" + result.get(change);
+			for (String entity : result.keySet()) {
+				line += "\t" + entity + ":" + result.get(entity);
 			}
 			combineResults.add(line);
 			bugChangeResults.put(bid, result);

@@ -168,25 +168,36 @@ public class ExtractCodeLikeTerms {
 	private HashMap<String,Integer> createCodeLikeTerms() {
 		HashMap<String,Integer> CLTMaps = new HashMap<String,Integer>();
 		HashSet<String> cltCandidates = new HashSet<String>();
-		List<String> lines = FileListUnderDirectory.getFileListUnder(main.Main.settings.get("repoLoc"), ".java");
+		List<String> lines = FileListUnderDirectory.getFileListUnder(main.Main.sourceDir, ".java");
 		HashSet<String> codeLikeTermCorpus = new HashSet<String>();
 		for (String line : lines) {
 			if (line.contains("test") || line.contains("Test")) continue;
-			
+			String[] tmp = line.split("/");
+			tmp = tmp[1].split("/");
+			for (String term : tmp) {
+				if (!term.contains(".")) {
+					String tmp2 = term.toLowerCase();
+					cltCandidates.add(tmp2);
+				}
+				else {
+					String tmp2 = term.substring(0,term.indexOf(".")).toLowerCase();
+					cltCandidates.add(tmp2);
+
+				}
+			}
 			HashSet<String> codeElements = ExtractCodeElementsFromSourceFile.extractCodeElements(line);
 			for (String term : codeElements) {
 				term = term.toLowerCase();
 				cltCandidates.add(term);
 			}
 		}
+		
 		for (String clt : cltCandidates) {
 			if (!isValid(clt)) continue;
  			CLTMaps.put(clt, codeLikeTermCorpus.size());
 			codeLikeTermCorpus.add(clt);
 		}
-		
 		return CLTMaps;
-		
 	} 
 	
 	public static void entry() {
