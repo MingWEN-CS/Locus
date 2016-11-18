@@ -1,13 +1,16 @@
 #[REQUIRED]the task you want to run {indexHunks, corpusCreation, produceChangeResults, produceFileResults, all}
-#indexHunks: extract the concerned changes
-#corpusCreation: create the corpus for bug reports, change logs, and changes
-#produceChangeResults: produce the results at the change level, the results will be put into file "changeLevelResults.txt"
-#produceFileResults: produce the results at the file level, the results will be put into file "fileLevelResults"
+#1. indexHunks: extract the concerned changes
+#2. corpusCreation: create the corpus for bug reports, change logs, and changes[must be executed after the 1st step]
+#3. produceChangeResults: produce the results at the change level, the results will be put into file "changeLevelResults.txt" [must be executed after the first two steps]
+#4. produceFileResults: produce the results at the file level, the results will be put into file "fileLevelResults" [must be executed after the first two steps]
 #all: conduct all the previous step
 task=all
 
 #[REQUIRED]the repository of the project
 repoDir=D:/Java/Datasets_MiningChanges/ZXing/zxing
+
+#[REQUIRED]the target version of the source file
+sourceDir=D:/Java/ZXing/ZXing-1.6/
 
 #[REQUIRED]the target version of the source file
 sourceDir=D:/Java/ZXing/ZXing-1.6/
