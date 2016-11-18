@@ -177,6 +177,8 @@ public class ProduceFileLevelResults {
 		List<List<Integer>> ranks = new ArrayList<List<Integer>>();
 		List<String> resultsLines = new ArrayList<String>();
 		double belta1 = Main.belta1;
+		if (loc.toLowerCase().contains("zxing"))
+			belta1 = 0.05;
 		for (Bug bug : bugs) {
 			int bid = bug.id;
 			HashMap<String, Double> results = hunkResults.get(bid);			

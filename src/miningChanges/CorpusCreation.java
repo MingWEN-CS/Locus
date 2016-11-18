@@ -314,25 +314,42 @@ public class CorpusCreation {
         List<String> lines;
 		String filename = main.Main.settings.get("workingLoc") + File.separator + "sourceFileIndex.txt";
 		sourceFileIndex = new HashMap<String,Integer>();
-		lines = FileListUnderDirectory.getFileListUnder(main.Main.settings.get("repoDir"), ".java");
+		lines = FileListUnderDirectory.getFileListUnder(main.Main.sourceDir, ".java");
 		int count = 0;
 		List<String> classList = new ArrayList<String>();
 		HashSet<String> allCodeTermsHashSet = new HashSet<String>();
 		for (int i = 0; i < lines.size(); i++) {
 			String className = lines.get(i).replace("/", ".");
+//			System.out.println(className);
 			className = className.replace("\\", ".");
+			String[] clts = className.split("\\.");
 			String prefix = main.Main.settings.get("repoDir").replace("/", ".");
 			prefix = prefix.replace("\\", ".");
 			int index = className.indexOf(prefix);
 			className = className.substring(index + prefix.length() + 1);
 			classList.add(className);
 			sourceFileIndex.put(className, count++);
+			
+			for (String term : clts) {
+				if (!term.contains(".")) {
+					String tmp2 = term.toLowerCase();
+					allCodeTermsHashSet.add(tmp2);
+
+				}
+				else {
+					String tmp2 = term.substring(0,term.indexOf(".")).toLowerCase();
+					allCodeTermsHashSet.add(tmp2);
+				}
+			}
+			if (className.toLowerCase().contains("test")) continue;
 			HashSet<String> codeElements = ExtractCodeElementsFromSourceFile.extractCodeElements(lines.get(i));
 			allCodeTermsHashSet.addAll(codeElements);
 		}
 		WriteLinesToFile.writeLinesToFile(classList, filename);
 		HashMap<String, Integer> cltMap = new HashMap<String, Integer>();
 		for (String item : allCodeTermsHashSet) {
+			
+			if (!isValid(item.toLowerCase())) continue;
             if (!cltMap.containsKey(item.toLowerCase()))
                 cltMap.put(item.toLowerCase(), cltMap.size());
 		}
@@ -340,6 +357,13 @@ public class CorpusCreation {
 		for (String key : cltMap.keySet())
 			lines.add(key + "\t" + cltMap.get(key));
 		WriteLinesToFile.writeLinesToFile(lines, main.Main.settings.get("workingLoc") + File.separator + "codeLikeTerms.txt");
+	}
+	
+	private static boolean isValid(String term) {
+		boolean flag = true;
+		if (term.length() < 5 && !term.contains("_")) flag = false;
+		if (Stopword.isEnglishStopword(term) || Stopword.isKeyword(term)) flag = false;
+		return flag;
 	}
 	
 	public static void createCorpus() throws Exception {
