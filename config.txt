@@ -17,3 +17,7 @@ bugReport=C:/Users/mwena/Documents/Java/ZXing/bugRepository.xml
 
 #[REQUIRED for producing at the change level]the oracle at the change level
 changeOracle=C:/Users/mwena/Documents/Java/ZXing/changeOraclesFull.txt
+
+lambda=5
+belta1=0.1
+belta2=0.2
