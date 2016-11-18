@@ -4,16 +4,23 @@
 #produceChangeResults: produce the results at the change level, the results will be put into file "changeLevelResults.txt"
 #produceFileResults: produce the results at the file level, the results will be put into file "fileLevelResults"
 #all: conduct all the previous step
-task=produceFileResults
+task=all
 
 #[REQUIRED]the repository of the project
-repoDir=C:/Users/mwena/Documents/Java/ZXing/zxing
+repoDir=/home1/mwenaa/2015Fall/Repos/eclipse.pde.ui/
+
+#[REQUIRED]the target version of the source file
+sourceDir=/home1/mwenaa/2015Fall/Locus/PDE/eclipse.pde.ui-R4_4/
 
 #[REQUIRED]the working loc of current run, which stores all the intermediate results
-workingLoc=C:/Users/mwena/Documents/Java/ZXing/
+workingLoc=/home1/mwenaa/2015Fall/Locus/PDE/
 
 #[REQUIRED]specify the bug report file
-bugReport=C:/Users/mwena/Documents/Java/ZXing/bugRepository.xml
+bugReport=/home1/mwenaa/2015Fall/Datasets_MiningChanges/PDE/PDE_4.4/bugRepository.xml
 
 #[REQUIRED for producing at the change level]the oracle at the change level
-changeOracle=C:/Users/mwena/Documents/Java/ZXing/changeOraclesFull.txt
+changeOracle=/home1/mwenaa/2015Fall/Datasets_MiningChanges/PDE/PDE_4.4/changeOraclesFull.txt
+
+lambda=5
+delta1=0
+delta2=0.2
