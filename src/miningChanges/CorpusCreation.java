@@ -323,6 +323,7 @@ public class CorpusCreation {
 //			System.out.println(className);
 			className = className.replace("\\", ".");
 			String[] clts = className.split("\\.");
+			if (!loc.toLowerCase().contains("zxing") && className.toLowerCase().contains("test")) continue;
 			String prefix = main.Main.settings.get("repoDir").replace("/", ".");
 			prefix = prefix.replace("\\", ".");
 			int index = className.indexOf(prefix);
