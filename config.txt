@@ -12,9 +12,6 @@ repoDir=D:/Java/Datasets_MiningChanges/ZXing/zxing
 #[REQUIRED]the target version of the source file
 sourceDir=D:/Java/ZXing/ZXing-1.6/
 
-#[REQUIRED]the target version of the source file
-sourceDir=D:/Java/ZXing/ZXing-1.6/
-
 #[REQUIRED]the working loc of current run, which stores all the intermediate results
 workingLoc=D:/Java/ZXing
 
