@@ -2,7 +2,6 @@ package miningChanges;
 
 import java.io.File;
 import java.util.*;
-
 import utils.ChangeLocator;
 import utils.ExtractCodeElementsFromSourceFile;
 import utils.FileListUnderDirectory;
@@ -93,6 +92,14 @@ public class CorpusCreation {
 		return index;
 	}
 
+	private static int getFileIndexExactMatch(String filename) {
+		for (String source : sourceFileIndex.keySet()) {
+			if (source.contains(filename) || filename.contains(source))
+				return sourceFileIndex.get(source);
+		}
+		return -1;
+	}
+	
 	public static void processBugReports() {
 		String proDir = main.Main.settings.get("workingLoc");
 		List<Bug> bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
@@ -120,7 +127,7 @@ public class CorpusCreation {
 			
 			line = bug.id + "";
 			for (String buggyFile : bug.buggyFiles) {
-				int index = getFileIndex(buggyFile);
+				int index = getFileIndexExactMatch(buggyFile);
 				if (index == -1) continue;
                 line += "\t" + index;
 			}
@@ -219,7 +226,7 @@ public class CorpusCreation {
 				WriteLinesToFile.writeLinesToFile(words, loc + File.separator + "hunkCode" + File.separator + savePath);				
 				
 				int index = hunkIndex.size();
-				int sourceIndex = getFileIndex(sourceFile);
+				int sourceIndex = getFileIndexExactMatch(sourceFile);
 				if (sourceIndex == -1) continue;
                 if (!sourceHunkLinks.containsKey(sourceIndex)) {
 					sourceHunkLinks.put(sourceIndex, new HashSet<Integer>());
