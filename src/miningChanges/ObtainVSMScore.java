@@ -27,6 +27,9 @@ public class ObtainVSMScore {
 	public HashMap<String,Integer> cltIndex;
 	public HashMap<Integer, String> hunkChangeMap;
 	public HashMap<Integer, String> hunkSourceMap;
+	public HashSet<String> validCommits;
+	public HashSet<Integer> validHunks;
+	
 	private static HashMap<Integer,HashSet<String>> potentialChanges;
 	
 	public void loadCLTIndex() {
@@ -111,12 +114,18 @@ public class ObtainVSMScore {
 		}
 //		hunkIndex = FileToLines.fileToLines(hunkIndexName);
 		hunkSourceMap = new HashMap<>();
+		validHunks = new HashSet<Integer>();
+		validCommits = new HashSet<String>();
 		String filename = loc + File.separator + "sourceHunkLink.txt";
 		lines = FileToLines.fileToLines(filename);
 		for (String line : lines) {
 			String[] split = line.split("\t");
-			for (int i = 1; i < split.length; i++)
-				hunkSourceMap.put(Integer.parseInt(split[i]), split[0]);
+			for (int i = 1; i < split.length; i++) {
+				int hid = Integer.parseInt(split[i]);
+				hunkSourceMap.put(hid, split[0]);
+				validHunks.add(hid);
+				validCommits.add(hunkIndex.get(hid).split("@")[0]);
+			}
 		}
 
 		for (int i = 0; i < hunkIndex.size(); i++) {
@@ -419,7 +428,7 @@ public class ObtainVSMScore {
 			
 			List<Integer> hunks = new ArrayList<Integer>();
 			for (int i = 0; i < hunkIndex.size(); i++) {
-				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)))
+				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)) && validHunks.contains(i))
 					hunks.add(i);
 			}
 			System.out.println("processing bug:" + bid + "\t" + hunks.size());

@@ -327,7 +327,7 @@ public class CorpusCreation {
 			String prefix = main.Main.settings.get("repoDir").replace("/", ".");
 			prefix = prefix.replace("\\", ".");
 			int index = className.indexOf(prefix);
-			className = className.substring(index + prefix.length() + 1);
+			className = className.substring(index + prefix.length() + 2);
 			classList.add(className);
 			sourceFileIndex.put(className, count++);
 			
