@@ -301,7 +301,7 @@ public class CorpusCreation {
 		String codeLikeTermFile = main.Main.settings.get("workingLoc") + File.separator + "codeLikeTerms.txt";
         File file = new File(codeLikeTermFile);
         if (file.exists()) {
-            System.out.print("code like ter file already existed!");
+            System.out.print("code like term file already existed!");
             sourceFileIndex = new HashMap<>();
             String filename = main.Main.settings.get("workingLoc") + File.separator + "sourceFileIndex.txt";
             List<String> lines = FileToLines.fileToLines(filename);
