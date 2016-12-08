@@ -202,6 +202,7 @@ public class ProduceFileLevelResults {
 			
 			for (int i = 0; i < finalRanks.size(); i++) {
 				int index = finalRanks.size() - i - 1;
+				if (i < 20) System.out.println(finalRanks.get(index).toString());
 				if (bugRelatedFiles.get(bid).contains(finalRanks.get(index).getKey()))
 					rank.add(i);
 			}
