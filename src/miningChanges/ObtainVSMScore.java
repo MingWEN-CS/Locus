@@ -145,6 +145,7 @@ public class ObtainVSMScore {
 	public List<String> corpusIndexNL = new ArrayList<String>();
 	public HashMap<Integer, HashMap<Integer,Double>> hunkTermFreqNL = new HashMap<Integer, HashMap<Integer,Double>>();	
 	public HashMap<Integer, Double> termHunkFreqNL = new HashMap<Integer,Double>();
+	public HashMap<Integer, Integer> termHunkCountNL = new HashMap<Integer,Integer>();
 	public HashMap<Integer, HashSet<String>> termEntityCountNL = new HashMap<Integer,HashSet<String>>();
 	public HashSet<Integer> processedHunksNL = new HashSet<Integer>();
 	
@@ -195,13 +196,17 @@ public class ObtainVSMScore {
 		for (int hid : newHunkIndex) {
 			HashMap<Integer,Double> tmp = hunkTermFreqNL.get(hid);
 			for (int index : tmp.keySet()) {
+				
+				if (termHunkCountNL.containsKey(index)) 
+					termHunkCountNL.put(index, termHunkCountNL.get(index) + 1);
+				else termHunkCountNL.put(index, 1);
+				
 				if (!termEntityCountNL.containsKey(index))
 					termEntityCountNL.put(index, new HashSet<String>());
-				
 				if (isChangeLevel)
 					termEntityCountNL.get(index).add(hunkChangeMap.get(hid));
 				else termEntityCountNL.get(index).add(hunkSourceMap.get(hid));
-				termHunkFreqNL.put(index, Math.log(processedHunksNL.size() * 1.0 / termEntityCountNL.get(index).size()));
+				termHunkFreqNL.put(index, Math.log(processedHunksNL.size() * 1.0 / termHunkCountNL.get(index)));
 			}
 		}
 	}
@@ -325,6 +330,7 @@ public class ObtainVSMScore {
 				if (!cltCount.containsKey(index))
 					cltCount.put(index, 1);
 				else cltCount.put(index, cltCount.get(index) + 1);
+				
 				if (!termEntityCount.containsKey(index))
 					termEntityCount.put(index, new HashSet<String>());
 
