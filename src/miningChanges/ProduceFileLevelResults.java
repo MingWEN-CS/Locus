@@ -171,6 +171,7 @@ public class ProduceFileLevelResults {
 				bugFixSuspicious.get(bug.id).put(sid, score);
 			}
 		}
+		
 	}
 	
 	public void integrateResults() {
@@ -179,11 +180,24 @@ public class ProduceFileLevelResults {
 		double belta1 = Main.belta1;
 		if (loc.toLowerCase().contains("zxing"))
 			belta1 = 0.05;
+		
 		for (Bug bug : bugs) {
 			int bid = bug.id;
 			if (!hunkResults.containsKey(bid)) continue;
 			HashMap<String, Double> results = hunkResults.get(bid);			
 			HashMap<Integer,Double> finalResults = new HashMap<Integer, Double>();
+			
+			// normalize bug fix results
+			HashMap<Integer, Double> fixSuspicious = bugFixSuspicious.get(bid);
+			double max = 0;
+			for (int sid : fixSuspicious.keySet())
+				if (max < fixSuspicious.get(sid))
+					max = fixSuspicious.get(sid);
+			
+			for (int sid : fixSuspicious.keySet()) 
+				fixSuspicious.put(sid, fixSuspicious.get(sid) / max);
+			
+			
 			for (String change : results.keySet()) {
 				
 				int sid = Integer.parseInt(change);
@@ -202,7 +216,6 @@ public class ProduceFileLevelResults {
 			
 			for (int i = 0; i < finalRanks.size(); i++) {
 				int index = finalRanks.size() - i - 1;
-				if (i < 20) System.out.println(finalRanks.get(index).toString());
 				if (bugRelatedFiles.get(bid).contains(finalRanks.get(index).getKey()))
 					rank.add(i);
 			}

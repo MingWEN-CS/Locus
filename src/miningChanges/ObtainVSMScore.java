@@ -439,7 +439,6 @@ public class ObtainVSMScore {
 		for (int b = 0; b < bugRank.size(); b++) {
 			Bug bug = bugs.get(bugRank.get(b).getKey());
 			int bid = bug.id;
-			if (!(bid == 444936 || bid == 458072)) continue;
 			List<Integer> hunks = new ArrayList<Integer>();
 			for (int i = 0; i < hunkIndex.size(); i++) {
 				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)) && validHunks.contains(i))
