@@ -181,6 +181,7 @@ public class ProduceFileLevelResults {
 			belta1 = 0.05;
 		for (Bug bug : bugs) {
 			int bid = bug.id;
+			if (hunkResults.containsKey(bid)) continue;
 			HashMap<String, Double> results = hunkResults.get(bid);			
 			HashMap<Integer,Double> finalResults = new HashMap<Integer, Double>();
 			for (String change : results.keySet()) {

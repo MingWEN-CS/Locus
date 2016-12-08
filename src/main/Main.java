@@ -40,8 +40,8 @@ public class Main {
 			System.out.println("Finish Indexing Files");
 			CorpusCreation.createCorpus();
 			System.out.println("Finish Creating Corpus");
-			ProduceChangeLevelResults rank1 = new ProduceChangeLevelResults();
-			rank1.getFinalResults();
+//			ProduceChangeLevelResults rank1 = new ProduceChangeLevelResults();
+//			rank1.getFinalResults();
 			System.out.println("Finish Creating Change Level Results");
 			ProduceFileLevelResults rank2 = new ProduceFileLevelResults();
 			rank2.getFinalResults();

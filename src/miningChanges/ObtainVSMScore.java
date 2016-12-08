@@ -201,7 +201,7 @@ public class ObtainVSMScore {
 				if (isChangeLevel)
 					termEntityCountNL.get(index).add(hunkChangeMap.get(hid));
 				else termEntityCountNL.get(index).add(hunkSourceMap.get(hid));
-				termHunkFreqNL.put(index, Math.log(relatedEntities.size() * 1.0 / termEntityCountNL.get(index).size()));
+				termHunkFreqNL.put(index, Math.log(processedHunksNL.size() * 1.0 / termEntityCountNL.get(index).size()));
 			}
 		}
 	}
@@ -317,11 +317,14 @@ public class ObtainVSMScore {
 			}
 		}
 //		System.out.println(relatedEntities.toString());
-//		int[] cltCount = new int[cltIndex.size()];
+		HashMap<Integer, Integer> cltCount = new HashMap<Integer,Integer>(); 
 		HashMap<Integer, HashSet<String>> termEntityCount = new HashMap<Integer,HashSet<String>>();
 		for (int hunk : hunkId) {
 			HashMap<Integer,Double> cltFreq = hunkCLTFreq.get(hunk);
 			for (int index : cltFreq.keySet()) {
+				if (!cltCount.containsKey(index))
+					cltCount.put(index, 1);
+				else cltCount.put(index, cltCount.get(index) + 1);
 				if (!termEntityCount.containsKey(index))
 					termEntityCount.put(index, new HashSet<String>());
 
@@ -335,8 +338,8 @@ public class ObtainVSMScore {
 		double[] inverseFreq = new double[cltIndex.size()];
 		for (int i = 0; i < cltIndex.size(); i++) {
 
-			if (termEntityCount.containsKey(i)) {
-				inverseFreq[i] = (termEntityCount.get(i).size() == 0) ? 0 : Math.log(relatedEntities.size() * 1.0 / termEntityCount.get(i).size());
+			if (cltCount.containsKey(i)) {
+				inverseFreq[i] = (termEntityCount.get(i).size() == 0) ? 0 : Math.log(hunkId.size() * 1.0 / cltCount.get(i));
 //				System.out.println("contains:" + i + "\t" + termEntityCount.get(i));
 			} else inverseFreq[i] = 0;
 		}
@@ -425,7 +428,7 @@ public class ObtainVSMScore {
 		for (int b = 0; b < bugRank.size(); b++) {
 			Bug bug = bugs.get(bugRank.get(b).getKey());
 			int bid = bug.id;
-			
+			if (!(bid == 444936 || bid == 458072)) continue;
 			List<Integer> hunks = new ArrayList<Integer>();
 			for (int i = 0; i < hunkIndex.size(); i++) {
 				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)) && validHunks.contains(i))
