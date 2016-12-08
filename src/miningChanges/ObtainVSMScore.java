@@ -104,12 +104,16 @@ public class ObtainVSMScore {
 		hunkTermList = new ArrayList<List<String>>();
 		String hunkIndexName = loc + File.separator + "hunkIndex.txt";
 		List<String> lines = FileToLines.fileToLines(hunkIndexName);
+		HashSet<Integer> semanticHunks = new HashSet<Integer>();
 		hunkIndex = new ArrayList<String>();
 		int index = 0;
 		hunkChangeMap = new HashMap<>();
 		for (String line : lines) {
-			hunkIndex.add(line.split("\t")[0]);
-			hunkChangeMap.put(index, line.split("\t")[0].split("@")[0]);
+			String[] split = line.split("\t");
+			hunkIndex.add(split[0]);
+			hunkChangeMap.put(index, split[0].split("@")[0]);
+			if (split[1].equals("true"))
+				semanticHunks.add(index);
 			index++;
 		}
 //		hunkIndex = FileToLines.fileToLines(hunkIndexName);
@@ -123,7 +127,8 @@ public class ObtainVSMScore {
 			for (int i = 1; i < split.length; i++) {
 				int hid = Integer.parseInt(split[i]);
 				hunkSourceMap.put(hid, split[0]);
-				validHunks.add(hid);
+				if (semanticHunks.contains(hid))
+					validHunks.add(hid);
 				validCommits.add(hunkIndex.get(hid).split("@")[0]);
 			}
 		}
