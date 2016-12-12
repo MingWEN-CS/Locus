@@ -2,8 +2,8 @@
 
 You can run Locus using command line: `java main.Main [config]`
 It reads all the configurations from the [config] file.
-[config] is optional, which refers to `config.txt` under the project folder by default.
-You can specify the config file to any file, which should have the same format as `confit.txt`
+[config] is optional, which refers to `config_local.txt` under the project folder by default.
+You can specify the config file to any file, which should have the same format as `confit_local.txt`
 
 The reauired configurations are as followings:
 
