@@ -27,6 +27,9 @@ public class ObtainVSMScore {
 	public HashMap<String,Integer> cltIndex;
 	public HashMap<Integer, String> hunkChangeMap;
 	public HashMap<Integer, String> hunkSourceMap;
+	public HashSet<String> validCommits;
+	public HashSet<Integer> validHunks;
+	
 	private static HashMap<Integer,HashSet<String>> potentialChanges;
 	
 	public void loadCLTIndex() {
@@ -101,22 +104,33 @@ public class ObtainVSMScore {
 		hunkTermList = new ArrayList<List<String>>();
 		String hunkIndexName = loc + File.separator + "hunkIndex.txt";
 		List<String> lines = FileToLines.fileToLines(hunkIndexName);
+		HashSet<Integer> semanticHunks = new HashSet<Integer>();
 		hunkIndex = new ArrayList<String>();
 		int index = 0;
 		hunkChangeMap = new HashMap<>();
 		for (String line : lines) {
-			hunkIndex.add(line.split("\t")[0]);
-			hunkChangeMap.put(index, line.split("\t")[0].split("@")[0]);
+			String[] split = line.split("\t");
+			hunkIndex.add(split[0]);
+			hunkChangeMap.put(index, split[0].split("@")[0]);
+			if (split[1].equals("true"))
+				semanticHunks.add(index);
 			index++;
 		}
 //		hunkIndex = FileToLines.fileToLines(hunkIndexName);
 		hunkSourceMap = new HashMap<>();
+		validHunks = new HashSet<Integer>();
+		validCommits = new HashSet<String>();
 		String filename = loc + File.separator + "sourceHunkLink.txt";
 		lines = FileToLines.fileToLines(filename);
 		for (String line : lines) {
 			String[] split = line.split("\t");
-			for (int i = 1; i < split.length; i++)
-				hunkSourceMap.put(Integer.parseInt(split[i]), split[0]);
+			for (int i = 1; i < split.length; i++) {
+				int hid = Integer.parseInt(split[i]);
+				hunkSourceMap.put(hid, split[0]);
+				if (semanticHunks.contains(hid))
+					validHunks.add(hid);
+				validCommits.add(hunkIndex.get(hid).split("@")[0]);
+			}
 		}
 
 		for (int i = 0; i < hunkIndex.size(); i++) {
@@ -136,6 +150,7 @@ public class ObtainVSMScore {
 	public List<String> corpusIndexNL = new ArrayList<String>();
 	public HashMap<Integer, HashMap<Integer,Double>> hunkTermFreqNL = new HashMap<Integer, HashMap<Integer,Double>>();	
 	public HashMap<Integer, Double> termHunkFreqNL = new HashMap<Integer,Double>();
+	public HashMap<Integer, Integer> termHunkCountNL = new HashMap<Integer,Integer>();
 	public HashMap<Integer, HashSet<String>> termEntityCountNL = new HashMap<Integer,HashSet<String>>();
 	public HashSet<Integer> processedHunksNL = new HashSet<Integer>();
 	
@@ -186,13 +201,17 @@ public class ObtainVSMScore {
 		for (int hid : newHunkIndex) {
 			HashMap<Integer,Double> tmp = hunkTermFreqNL.get(hid);
 			for (int index : tmp.keySet()) {
+				
+				if (termHunkCountNL.containsKey(index)) 
+					termHunkCountNL.put(index, termHunkCountNL.get(index) + 1);
+				else termHunkCountNL.put(index, 1);
+				
 				if (!termEntityCountNL.containsKey(index))
 					termEntityCountNL.put(index, new HashSet<String>());
-				
 				if (isChangeLevel)
 					termEntityCountNL.get(index).add(hunkChangeMap.get(hid));
 				else termEntityCountNL.get(index).add(hunkSourceMap.get(hid));
-				termHunkFreqNL.put(index, Math.log(relatedEntities.size() * 1.0 / termEntityCountNL.get(index).size()));
+				termHunkFreqNL.put(index, Math.log(processedHunksNL.size() * 1.0 / termHunkCountNL.get(index)));
 			}
 		}
 	}
@@ -308,11 +327,15 @@ public class ObtainVSMScore {
 			}
 		}
 //		System.out.println(relatedEntities.toString());
-//		int[] cltCount = new int[cltIndex.size()];
+		HashMap<Integer, Integer> cltCount = new HashMap<Integer,Integer>(); 
 		HashMap<Integer, HashSet<String>> termEntityCount = new HashMap<Integer,HashSet<String>>();
 		for (int hunk : hunkId) {
 			HashMap<Integer,Double> cltFreq = hunkCLTFreq.get(hunk);
 			for (int index : cltFreq.keySet()) {
+				if (!cltCount.containsKey(index))
+					cltCount.put(index, 1);
+				else cltCount.put(index, cltCount.get(index) + 1);
+				
 				if (!termEntityCount.containsKey(index))
 					termEntityCount.put(index, new HashSet<String>());
 
@@ -326,8 +349,8 @@ public class ObtainVSMScore {
 		double[] inverseFreq = new double[cltIndex.size()];
 		for (int i = 0; i < cltIndex.size(); i++) {
 
-			if (termEntityCount.containsKey(i)) {
-				inverseFreq[i] = (termEntityCount.get(i).size() == 0) ? 0 : Math.log(relatedEntities.size() * 1.0 / termEntityCount.get(i).size());
+			if (cltCount.containsKey(i)) {
+				inverseFreq[i] = (termEntityCount.get(i).size() == 0) ? 0 : Math.log(hunkId.size() * 1.0 / cltCount.get(i));
 //				System.out.println("contains:" + i + "\t" + termEntityCount.get(i));
 			} else inverseFreq[i] = 0;
 		}
@@ -416,10 +439,9 @@ public class ObtainVSMScore {
 		for (int b = 0; b < bugRank.size(); b++) {
 			Bug bug = bugs.get(bugRank.get(b).getKey());
 			int bid = bug.id;
-			
 			List<Integer> hunks = new ArrayList<Integer>();
 			for (int i = 0; i < hunkIndex.size(); i++) {
-				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)))
+				if (potentialChanges.get(bid).contains(hunkChangeMap.get(i)) && validHunks.contains(i))
 					hunks.add(i);
 			}
 			System.out.println("processing bug:" + bid + "\t" + hunks.size());

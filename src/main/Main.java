@@ -97,7 +97,7 @@ public class Main {
 			loadConfigure(args[0]);
 		} else {
 			System.out.println("Using default configuration file");
-			loadConfigure("./config.txt");
+			loadConfigure("./config_local.txt");
 		}
 		
 	}

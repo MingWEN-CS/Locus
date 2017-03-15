@@ -2,7 +2,6 @@ package miningChanges;
 
 import java.io.File;
 import java.util.*;
-
 import utils.ChangeLocator;
 import utils.ExtractCodeElementsFromSourceFile;
 import utils.FileListUnderDirectory;
@@ -93,6 +92,14 @@ public class CorpusCreation {
 		return index;
 	}
 
+	private static int getFileIndexExactMatch(String filename) {
+		for (String source : sourceFileIndex.keySet()) {
+			if (source.contains(filename) || filename.contains(source))
+				return sourceFileIndex.get(source);
+		}
+		return -1;
+	}
+	
 	public static void processBugReports() {
 		String proDir = main.Main.settings.get("workingLoc");
 		List<Bug> bugs = ReadBugsFromXML.getFixedBugsFromXML(main.Main.settings.get("bugReport"));
@@ -120,7 +127,7 @@ public class CorpusCreation {
 			
 			line = bug.id + "";
 			for (String buggyFile : bug.buggyFiles) {
-				int index = getFileIndex(buggyFile);
+				int index = getFileIndexExactMatch(buggyFile);
 				if (index == -1) continue;
                 line += "\t" + index;
 			}
@@ -219,7 +226,7 @@ public class CorpusCreation {
 				WriteLinesToFile.writeLinesToFile(words, loc + File.separator + "hunkCode" + File.separator + savePath);				
 				
 				int index = hunkIndex.size();
-				int sourceIndex = getFileIndex(sourceFile);
+				int sourceIndex = getFileIndexExactMatch(sourceFile);
 				if (sourceIndex == -1) continue;
                 if (!sourceHunkLinks.containsKey(sourceIndex)) {
 					sourceHunkLinks.put(sourceIndex, new HashSet<Integer>());
@@ -301,7 +308,7 @@ public class CorpusCreation {
 		String codeLikeTermFile = main.Main.settings.get("workingLoc") + File.separator + "codeLikeTerms.txt";
         File file = new File(codeLikeTermFile);
         if (file.exists()) {
-            System.out.print("code like ter file already existed!");
+            System.out.print("code like term file already existed!");
             sourceFileIndex = new HashMap<>();
             String filename = main.Main.settings.get("workingLoc") + File.separator + "sourceFileIndex.txt";
             List<String> lines = FileToLines.fileToLines(filename);
@@ -327,7 +334,7 @@ public class CorpusCreation {
 			String prefix = main.Main.settings.get("repoDir").replace("/", ".");
 			prefix = prefix.replace("\\", ".");
 			int index = className.indexOf(prefix);
-			className = className.substring(index + prefix.length() + 1);
+			className = className.substring(index + prefix.length() + 2);
 			classList.add(className);
 			sourceFileIndex.put(className, count++);
 			
